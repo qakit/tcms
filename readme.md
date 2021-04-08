@@ -20,6 +20,7 @@
 1. project is created with `dotnet new blazorserver ...` command (added auth stuff)
 1. removed migrations, updated provider to Postgres and generated initial migration again
 1. imported `dotnet ef dbcontext scaffold ...` Kiwi model and excluded it from build
+1. moved server source code under src folder
 
 
 ## Misc
