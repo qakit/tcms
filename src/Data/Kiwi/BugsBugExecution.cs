@@ -12,6 +12,6 @@ namespace tcms.Data.Kiwi
         public int TestexecutionId { get; set; }
 
         public virtual BugsBug Bug { get; set; }
-        public virtual TestrunsTestexecution Testexecution { get; set; }
+        public virtual TestRuns.Testexecution Testexecution { get; set; }
     }
 }

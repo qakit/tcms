@@ -11,8 +11,8 @@ namespace tcms.Data.Kiwi
         {
             BugsBugs = new HashSet<BugsBug>();
             ManagementBuilds = new HashSet<ManagementBuild>();
-            TestplansTestplans = new HashSet<TestplansTestplan>();
-            TestrunsTestruns = new HashSet<TestrunsTestrun>();
+            Testplans = new HashSet<TestplansTestplan>();
+            Testruns = new HashSet<TestRuns.Testrun>();
         }
 
         public int Id { get; set; }
@@ -22,7 +22,7 @@ namespace tcms.Data.Kiwi
         public virtual ManagementProduct Product { get; set; }
         public virtual ICollection<BugsBug> BugsBugs { get; set; }
         public virtual ICollection<ManagementBuild> ManagementBuilds { get; set; }
-        public virtual ICollection<TestplansTestplan> TestplansTestplans { get; set; }
-        public virtual ICollection<TestrunsTestrun> TestrunsTestruns { get; set; }
+        public virtual ICollection<TestplansTestplan> Testplans { get; set; }
+        public virtual ICollection<TestRuns.Testrun> Testruns { get; set; }
     }
 }

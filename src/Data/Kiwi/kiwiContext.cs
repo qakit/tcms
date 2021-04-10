@@ -45,27 +45,27 @@ namespace tcms.Data.Kiwi
         public virtual DbSet<ManagementProduct> ManagementProducts { get; set; }
         public virtual DbSet<ManagementTag> ManagementTags { get; set; }
         public virtual DbSet<ManagementVersion> ManagementVersions { get; set; }
-        public virtual DbSet<TestcasesBugsystem> TestcasesBugsystems { get; set; }
-        public virtual DbSet<TestcasesCategory> TestcasesCategories { get; set; }
-        public virtual DbSet<TestcasesHistoricaltestcase> TestcasesHistoricaltestcases { get; set; }
-        public virtual DbSet<TestcasesTestcase> TestcasesTestcases { get; set; }
-        public virtual DbSet<TestcasesTestcasecomponent> TestcasesTestcasecomponents { get; set; }
-        public virtual DbSet<TestcasesTestcaseemailsetting> TestcasesTestcaseemailsettings { get; set; }
-        public virtual DbSet<TestcasesTestcaseplan> TestcasesTestcaseplans { get; set; }
-        public virtual DbSet<TestcasesTestcasestatus> TestcasesTestcasestatuses { get; set; }
-        public virtual DbSet<TestcasesTestcasetag> TestcasesTestcasetags { get; set; }
+        public virtual DbSet<TestCases.Bugsystem> Bugsystems { get; set; }
+        public virtual DbSet<TestCases.Category> Categories { get; set; }
+        public virtual DbSet<TestCases.Historicaltestcase> Historicaltestcases { get; set; }
+        public virtual DbSet<TestCases.Testcase> Testcases { get; set; }
+        public virtual DbSet<TestCases.Testcasecomponent> Testcasecomponents { get; set; }
+        public virtual DbSet<TestCases.Testcaseemailsetting> Testcaseemailsettings { get; set; }
+        public virtual DbSet<TestCases.Testcaseplan> Testcaseplans { get; set; }
+        public virtual DbSet<TestCases.Testcasestatus> Testcasestatuses { get; set; }
+        public virtual DbSet<TestCases.Testcasetag> Testcasetags { get; set; }
         public virtual DbSet<TestplansHistoricaltestplan> TestplansHistoricaltestplans { get; set; }
         public virtual DbSet<TestplansPlantype> TestplansPlantypes { get; set; }
         public virtual DbSet<TestplansTestplan> TestplansTestplans { get; set; }
         public virtual DbSet<TestplansTestplanemailsetting> TestplansTestplanemailsettings { get; set; }
         public virtual DbSet<TestplansTestplantag> TestplansTestplantags { get; set; }
-        public virtual DbSet<TestrunsHistoricaltestexecution> TestrunsHistoricaltestexecutions { get; set; }
-        public virtual DbSet<TestrunsHistoricaltestrun> TestrunsHistoricaltestruns { get; set; }
-        public virtual DbSet<TestrunsTestexecution> TestrunsTestexecutions { get; set; }
-        public virtual DbSet<TestrunsTestexecutionstatus> TestrunsTestexecutionstatuses { get; set; }
-        public virtual DbSet<TestrunsTestrun> TestrunsTestruns { get; set; }
-        public virtual DbSet<TestrunsTestruncc> TestrunsTestrunccs { get; set; }
-        public virtual DbSet<TestrunsTestruntag> TestrunsTestruntags { get; set; }
+        public virtual DbSet<TestRuns.Historicaltestexecution> Historicaltestexecutions { get; set; }
+        public virtual DbSet<TestRuns.Historicaltestrun> Historicaltestruns { get; set; }
+        public virtual DbSet<TestRuns.Testexecution> Testexecutions { get; set; }
+        public virtual DbSet<TestRuns.Testexecutionstatus> Testexecutionstatuses { get; set; }
+        public virtual DbSet<TestRuns.Testrun> Testruns { get; set; }
+        public virtual DbSet<TestRuns.Testruncc> Testrunccs { get; set; }
+        public virtual DbSet<TestRuns.Testruntag> Testruntags { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -1053,7 +1053,7 @@ namespace tcms.Data.Kiwi
                     .HasConstraintName("management_version_product_id_f1cf2daf_fk_management_product_id");
             });
 
-            modelBuilder.Entity<TestcasesBugsystem>(entity =>
+            modelBuilder.Entity<TestCases.Bugsystem>(entity =>
             {
                 entity.ToTable("testcases_bugsystem");
 
@@ -1092,7 +1092,7 @@ namespace tcms.Data.Kiwi
                     .HasColumnName("tracker_type");
             });
 
-            modelBuilder.Entity<TestcasesCategory>(entity =>
+            modelBuilder.Entity<TestCases.Category>(entity =>
             {
                 entity.ToTable("testcases_category");
 
@@ -1117,13 +1117,13 @@ namespace tcms.Data.Kiwi
                 entity.Property(e => e.ProductId).HasColumnName("product_id");
 
                 entity.HasOne(d => d.Product)
-                    .WithMany(p => p.TestcasesCategories)
+                    .WithMany(p => p.Categories)
                     .HasForeignKey(d => d.ProductId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testcases_category_product_id_f26067e7_fk_management_product_id");
             });
 
-            modelBuilder.Entity<TestcasesHistoricaltestcase>(entity =>
+            modelBuilder.Entity<TestCases.Historicaltestcase>(entity =>
             {
                 entity.HasKey(e => e.HistoryId)
                     .HasName("testcases_historicaltestcase_pkey");
@@ -1210,12 +1210,12 @@ namespace tcms.Data.Kiwi
                     .HasColumnName("text");
 
                 entity.HasOne(d => d.HistoryUser)
-                    .WithMany(p => p.TestcasesHistoricaltestcases)
+                    .WithMany(p => p.Historicaltestcases)
                     .HasForeignKey(d => d.HistoryUserId)
                     .HasConstraintName("testcases_historical_history_user_id_7091ce1e_fk_auth_user");
             });
 
-            modelBuilder.Entity<TestcasesTestcase>(entity =>
+            modelBuilder.Entity<TestCases.Testcase>(entity =>
             {
                 entity.ToTable("testcases_testcase");
 
@@ -1282,41 +1282,41 @@ namespace tcms.Data.Kiwi
                     .HasColumnName("text");
 
                 entity.HasOne(d => d.Author)
-                    .WithMany(p => p.TestcasesTestcaseAuthors)
+                    .WithMany(p => p.TestcaseAuthors)
                     .HasForeignKey(d => d.AuthorId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testcases_testcase_author_id_40ee8140_fk_auth_user_id");
 
                 entity.HasOne(d => d.CaseStatus)
-                    .WithMany(p => p.TestcasesTestcases)
+                    .WithMany(p => p.Testcases)
                     .HasForeignKey(d => d.CaseStatusId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testcases_testcase_case_status_id_506e2b3f_fk_testcases");
 
                 entity.HasOne(d => d.Category)
-                    .WithMany(p => p.TestcasesTestcases)
+                    .WithMany(p => p.Testcases)
                     .HasForeignKey(d => d.CategoryId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testcases_testcase_category_id_f52a4b36_fk_testcases");
 
                 entity.HasOne(d => d.DefaultTester)
-                    .WithMany(p => p.TestcasesTestcaseDefaultTesters)
+                    .WithMany(p => p.TestcaseDefaultTesters)
                     .HasForeignKey(d => d.DefaultTesterId)
                     .HasConstraintName("testcases_testcase_default_tester_id_d9c8faf2_fk_auth_user_id");
 
                 entity.HasOne(d => d.Priority)
-                    .WithMany(p => p.TestcasesTestcases)
+                    .WithMany(p => p.Testcases)
                     .HasForeignKey(d => d.PriorityId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testcases_testcase_priority_id_06e62b85_fk_managemen");
 
                 entity.HasOne(d => d.Reviewer)
-                    .WithMany(p => p.TestcasesTestcaseReviewers)
+                    .WithMany(p => p.TestcaseReviewers)
                     .HasForeignKey(d => d.ReviewerId)
                     .HasConstraintName("testcases_testcase_reviewer_id_4be5756e_fk_auth_user_id");
             });
 
-            modelBuilder.Entity<TestcasesTestcasecomponent>(entity =>
+            modelBuilder.Entity<TestCases.Testcasecomponent>(entity =>
             {
                 entity.ToTable("testcases_testcasecomponent");
 
@@ -1331,19 +1331,19 @@ namespace tcms.Data.Kiwi
                 entity.Property(e => e.ComponentId).HasColumnName("component_id");
 
                 entity.HasOne(d => d.Case)
-                    .WithMany(p => p.TestcasesTestcasecomponents)
+                    .WithMany(p => p.Testcasecomponents)
                     .HasForeignKey(d => d.CaseId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testcases_testcaseco_case_id_fc27e38a_fk_testcases");
 
                 entity.HasOne(d => d.Component)
-                    .WithMany(p => p.TestcasesTestcasecomponents)
+                    .WithMany(p => p.Testcasecomponents)
                     .HasForeignKey(d => d.ComponentId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testcases_testcaseco_component_id_edd78178_fk_managemen");
             });
 
-            modelBuilder.Entity<TestcasesTestcaseemailsetting>(entity =>
+            modelBuilder.Entity<TestCases.Testcaseemailsetting>(entity =>
             {
                 entity.ToTable("testcases_testcaseemailsettings");
 
@@ -1373,13 +1373,13 @@ namespace tcms.Data.Kiwi
                 entity.Property(e => e.NotifyOnCaseUpdate).HasColumnName("notify_on_case_update");
 
                 entity.HasOne(d => d.Case)
-                    .WithOne(p => p.TestcasesTestcaseemailsetting)
-                    .HasForeignKey<TestcasesTestcaseemailsetting>(d => d.CaseId)
+                    .WithOne(p => p.Testcaseemailsetting)
+                    .HasForeignKey<TestCases.Testcaseemailsetting>(d => d.CaseId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testcases_testcaseem_case_id_76dfe19b_fk_testcases");
             });
 
-            modelBuilder.Entity<TestcasesTestcaseplan>(entity =>
+            modelBuilder.Entity<TestCases.Testcaseplan>(entity =>
             {
                 entity.ToTable("testcases_testcaseplan");
 
@@ -1399,19 +1399,19 @@ namespace tcms.Data.Kiwi
                 entity.Property(e => e.Sortkey).HasColumnName("sortkey");
 
                 entity.HasOne(d => d.Case)
-                    .WithMany(p => p.TestcasesTestcaseplans)
+                    .WithMany(p => p.Testcaseplans)
                     .HasForeignKey(d => d.CaseId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testcases_testcasepl_case_id_89f638fc_fk_testcases");
 
                 entity.HasOne(d => d.Plan)
-                    .WithMany(p => p.TestcasesTestcaseplans)
+                    .WithMany(p => p.Testcaseplans)
                     .HasForeignKey(d => d.PlanId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testcases_testcasepl_plan_id_40b3d762_fk_testplans");
             });
 
-            modelBuilder.Entity<TestcasesTestcasestatus>(entity =>
+            modelBuilder.Entity<TestCases.Testcasestatus>(entity =>
             {
                 entity.ToTable("testcases_testcasestatus");
 
@@ -1431,7 +1431,7 @@ namespace tcms.Data.Kiwi
                     .HasColumnName("name");
             });
 
-            modelBuilder.Entity<TestcasesTestcasetag>(entity =>
+            modelBuilder.Entity<TestCases.Testcasetag>(entity =>
             {
                 entity.ToTable("testcases_testcasetag");
 
@@ -1446,13 +1446,13 @@ namespace tcms.Data.Kiwi
                 entity.Property(e => e.TagId).HasColumnName("tag_id");
 
                 entity.HasOne(d => d.Case)
-                    .WithMany(p => p.TestcasesTestcasetags)
+                    .WithMany(p => p.Testcasetags)
                     .HasForeignKey(d => d.CaseId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testcases_testcaseta_case_id_338ecd07_fk_testcases");
 
                 entity.HasOne(d => d.Tag)
-                    .WithMany(p => p.TestcasesTestcasetags)
+                    .WithMany(p => p.Testcasetags)
                     .HasForeignKey(d => d.TagId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testcases_testcasetag_tag_id_b16f414a_fk_management_tag_tag_id");
@@ -1615,7 +1615,7 @@ namespace tcms.Data.Kiwi
                 entity.Property(e => e.TypeId).HasColumnName("type_id");
 
                 entity.HasOne(d => d.Author)
-                    .WithMany(p => p.TestplansTestplans)
+                    .WithMany(p => p.Testplans)
                     .HasForeignKey(d => d.AuthorId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testplans_testplan_author_id_8fc1910b_fk_auth_user_id");
@@ -1626,19 +1626,19 @@ namespace tcms.Data.Kiwi
                     .HasConstraintName("testplans_testplan_parent_id_c3460a73_fk_testplans_testplan_id");
 
                 entity.HasOne(d => d.Product)
-                    .WithMany(p => p.TestplansTestplans)
+                    .WithMany(p => p.Testplans)
                     .HasForeignKey(d => d.ProductId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testplans_testplan_product_id_6e99180c_fk_management_product_id");
 
                 entity.HasOne(d => d.ProductVersion)
-                    .WithMany(p => p.TestplansTestplans)
+                    .WithMany(p => p.Testplans)
                     .HasForeignKey(d => d.ProductVersionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testplans_testplan_product_version_id_0ad731f7_fk_managemen");
 
                 entity.HasOne(d => d.Type)
-                    .WithMany(p => p.TestplansTestplans)
+                    .WithMany(p => p.Testplans)
                     .HasForeignKey(d => d.TypeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testplans_testplan_type_id_b83ae87b_fk_testplans");
@@ -1666,7 +1666,7 @@ namespace tcms.Data.Kiwi
                 entity.Property(e => e.PlanId).HasColumnName("plan_id");
 
                 entity.HasOne(d => d.Plan)
-                    .WithOne(p => p.TestplansTestplanemailsetting)
+                    .WithOne(p => p.Testplanemailsetting)
                     .HasForeignKey<TestplansTestplanemailsetting>(d => d.PlanId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testplans_testplanem_plan_id_036c434f_fk_testplans");
@@ -1687,19 +1687,19 @@ namespace tcms.Data.Kiwi
                 entity.Property(e => e.TagId).HasColumnName("tag_id");
 
                 entity.HasOne(d => d.Plan)
-                    .WithMany(p => p.TestplansTestplantags)
+                    .WithMany(p => p.Testplantags)
                     .HasForeignKey(d => d.PlanId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testplans_testplanta_plan_id_f5c9e46a_fk_testplans");
 
                 entity.HasOne(d => d.Tag)
-                    .WithMany(p => p.TestplansTestplantags)
+                    .WithMany(p => p.Testplantags)
                     .HasForeignKey(d => d.TagId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testplans_testplantag_tag_id_4a5c61b6_fk_management_tag_tag_id");
             });
 
-            modelBuilder.Entity<TestrunsHistoricaltestexecution>(entity =>
+            modelBuilder.Entity<TestRuns.Historicaltestexecution>(entity =>
             {
                 entity.HasKey(e => e.HistoryId)
                     .HasName("testruns_historicaltestcaserun_pkey");
@@ -1770,12 +1770,12 @@ namespace tcms.Data.Kiwi
                 entity.Property(e => e.TestedById).HasColumnName("tested_by_id");
 
                 entity.HasOne(d => d.HistoryUser)
-                    .WithMany(p => p.TestrunsHistoricaltestexecutions)
+                    .WithMany(p => p.Historicaltestexecutions)
                     .HasForeignKey(d => d.HistoryUserId)
                     .HasConstraintName("testruns_historicalt_history_user_id_d11b82d1_fk_auth_user");
             });
 
-            modelBuilder.Entity<TestrunsHistoricaltestrun>(entity =>
+            modelBuilder.Entity<TestRuns.Historicaltestrun>(entity =>
             {
                 entity.HasKey(e => e.HistoryId)
                     .HasName("testruns_historicaltestrun_pkey");
@@ -1856,12 +1856,12 @@ namespace tcms.Data.Kiwi
                     .HasColumnName("summary");
 
                 entity.HasOne(d => d.HistoryUser)
-                    .WithMany(p => p.TestrunsHistoricaltestruns)
+                    .WithMany(p => p.Historicaltestruns)
                     .HasForeignKey(d => d.HistoryUserId)
                     .HasConstraintName("testruns_historicalt_history_user_id_8021d038_fk_auth_user");
             });
 
-            modelBuilder.Entity<TestrunsTestexecution>(entity =>
+            modelBuilder.Entity<TestRuns.Testexecution>(entity =>
             {
                 entity.ToTable("testruns_testexecution");
 
@@ -1913,41 +1913,41 @@ namespace tcms.Data.Kiwi
                 entity.Property(e => e.TestedById).HasColumnName("tested_by_id");
 
                 entity.HasOne(d => d.Assignee)
-                    .WithMany(p => p.TestrunsTestexecutionAssignees)
+                    .WithMany(p => p.TestexecutionAssignees)
                     .HasForeignKey(d => d.AssigneeId)
                     .HasConstraintName("testruns_testexecution_assignee_id_0daefb61_fk_auth_user_id");
 
                 entity.HasOne(d => d.Build)
-                    .WithMany(p => p.TestrunsTestexecutions)
+                    .WithMany(p => p.Testexecutions)
                     .HasForeignKey(d => d.BuildId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testruns_testcaserun_build_id_377936c9_fk_managemen");
 
                 entity.HasOne(d => d.Case)
-                    .WithMany(p => p.TestrunsTestexecutions)
+                    .WithMany(p => p.Testexecutions)
                     .HasForeignKey(d => d.CaseId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testruns_testexecuti_case_id_24b74b89_fk_testcases");
 
                 entity.HasOne(d => d.Run)
-                    .WithMany(p => p.TestrunsTestexecutions)
+                    .WithMany(p => p.Testexecutions)
                     .HasForeignKey(d => d.RunId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testruns_testexecution_run_id_b07eceea_fk_testruns_testrun_id");
 
                 entity.HasOne(d => d.Status)
-                    .WithMany(p => p.TestrunsTestexecutions)
+                    .WithMany(p => p.Testexecutions)
                     .HasForeignKey(d => d.StatusId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testruns_testexecuti_status_id_82e677b4_fk_testruns_");
 
                 entity.HasOne(d => d.TestedBy)
-                    .WithMany(p => p.TestrunsTestexecutionTestedBies)
+                    .WithMany(p => p.TestexecutionTestedBies)
                     .HasForeignKey(d => d.TestedById)
                     .HasConstraintName("testruns_testexecution_tested_by_id_23ec246c_fk_auth_user_id");
             });
 
-            modelBuilder.Entity<TestrunsTestexecutionstatus>(entity =>
+            modelBuilder.Entity<TestRuns.Testexecutionstatus>(entity =>
             {
                 entity.ToTable("testruns_testexecutionstatus");
 
@@ -1979,7 +1979,7 @@ namespace tcms.Data.Kiwi
                 entity.Property(e => e.Weight).HasColumnName("weight");
             });
 
-            modelBuilder.Entity<TestrunsTestrun>(entity =>
+            modelBuilder.Entity<TestRuns.Testrun>(entity =>
             {
                 entity.ToTable("testruns_testrun");
 
@@ -2040,36 +2040,36 @@ namespace tcms.Data.Kiwi
                     .HasColumnName("summary");
 
                 entity.HasOne(d => d.Build)
-                    .WithMany(p => p.TestrunsTestruns)
+                    .WithMany(p => p.Testruns)
                     .HasForeignKey(d => d.BuildId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testruns_testrun_build_id_fca012cf_fk_management_build_build_id");
 
                 entity.HasOne(d => d.DefaultTester)
-                    .WithMany(p => p.TestrunsTestrunDefaultTesters)
+                    .WithMany(p => p.TestrunDefaultTesters)
                     .HasForeignKey(d => d.DefaultTesterId)
                     .HasConstraintName("testruns_testrun_default_tester_id_cfd29db3_fk_auth_user_id");
 
                 entity.HasOne(d => d.Manager)
-                    .WithMany(p => p.TestrunsTestrunManagers)
+                    .WithMany(p => p.TestrunManagers)
                     .HasForeignKey(d => d.ManagerId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testruns_testrun_manager_id_3b380cf6_fk_auth_user_id");
 
                 entity.HasOne(d => d.Plan)
-                    .WithMany(p => p.TestrunsTestruns)
+                    .WithMany(p => p.Testruns)
                     .HasForeignKey(d => d.PlanId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testruns_testrun_plan_id_6c5c942a_fk_testplans_testplan_plan_id");
 
                 entity.HasOne(d => d.ProductVersion)
-                    .WithMany(p => p.TestrunsTestruns)
+                    .WithMany(p => p.Testruns)
                     .HasForeignKey(d => d.ProductVersionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testruns_testrun_product_version_id_22b22215_fk_managemen");
             });
 
-            modelBuilder.Entity<TestrunsTestruncc>(entity =>
+            modelBuilder.Entity<TestRuns.Testruncc>(entity =>
             {
                 entity.ToTable("testruns_testruncc");
 
@@ -2087,19 +2087,19 @@ namespace tcms.Data.Kiwi
                 entity.Property(e => e.UserId).HasColumnName("user_id");
 
                 entity.HasOne(d => d.Run)
-                    .WithMany(p => p.TestrunsTestrunccs)
+                    .WithMany(p => p.Testrunccs)
                     .HasForeignKey(d => d.RunId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testruns_testruncc_run_id_e1329c9b_fk_testruns_testrun_run_id");
 
                 entity.HasOne(d => d.User)
-                    .WithMany(p => p.TestrunsTestrunccs)
+                    .WithMany(p => p.Testrunccs)
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testruns_testruncc_user_id_d87465d8_fk_auth_user_id");
             });
 
-            modelBuilder.Entity<TestrunsTestruntag>(entity =>
+            modelBuilder.Entity<TestRuns.Testruntag>(entity =>
             {
                 entity.ToTable("testruns_testruntag");
 
@@ -2114,13 +2114,13 @@ namespace tcms.Data.Kiwi
                 entity.Property(e => e.TagId).HasColumnName("tag_id");
 
                 entity.HasOne(d => d.Run)
-                    .WithMany(p => p.TestrunsTestruntags)
+                    .WithMany(p => p.Testruntags)
                     .HasForeignKey(d => d.RunId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testruns_testruntag_run_id_08efd935_fk_testruns_testrun_run_id");
 
                 entity.HasOne(d => d.Tag)
-                    .WithMany(p => p.TestrunsTestruntags)
+                    .WithMany(p => p.Testruntags)
                     .HasForeignKey(d => d.TagId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("testruns_testruntag_tag_id_71c717c0_fk_management_tag_tag_id");

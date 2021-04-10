@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 #nullable disable
 
-namespace tcms.Data.Kiwi
+namespace tcms.Data.Kiwi.TestRuns
 {
-    public partial class TestrunsTestrun
+    public partial class Testrun
     {
-        public TestrunsTestrun()
+        public Testrun()
         {
-            TestrunsTestexecutions = new HashSet<TestrunsTestexecution>();
-            TestrunsTestrunccs = new HashSet<TestrunsTestruncc>();
-            TestrunsTestruntags = new HashSet<TestrunsTestruntag>();
+            Testexecutions = new HashSet<Testexecution>();
+            Testrunccs = new HashSet<Testruncc>();
+            Testruntags = new HashSet<Testruntag>();
         }
 
         public int Id { get; set; }
@@ -32,8 +32,8 @@ namespace tcms.Data.Kiwi
         public virtual AuthUser Manager { get; set; }
         public virtual TestplansTestplan Plan { get; set; }
         public virtual ManagementVersion ProductVersion { get; set; }
-        public virtual ICollection<TestrunsTestexecution> TestrunsTestexecutions { get; set; }
-        public virtual ICollection<TestrunsTestruncc> TestrunsTestrunccs { get; set; }
-        public virtual ICollection<TestrunsTestruntag> TestrunsTestruntags { get; set; }
+        public virtual ICollection<Testexecution> Testexecutions { get; set; }
+        public virtual ICollection<Testruncc> Testrunccs { get; set; }
+        public virtual ICollection<Testruntag> Testruntags { get; set; }
     }
 }

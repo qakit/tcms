@@ -3,16 +3,16 @@ using System.Collections.Generic;
 
 #nullable disable
 
-namespace tcms.Data.Kiwi
+namespace tcms.Data.Kiwi.TestCases
 {
-    public partial class TestcasesTestcase
+    public partial class Testcase
     {
-        public TestcasesTestcase()
+        public Testcase()
         {
-            TestcasesTestcasecomponents = new HashSet<TestcasesTestcasecomponent>();
-            TestcasesTestcaseplans = new HashSet<TestcasesTestcaseplan>();
-            TestcasesTestcasetags = new HashSet<TestcasesTestcasetag>();
-            TestrunsTestexecutions = new HashSet<TestrunsTestexecution>();
+            Testcasecomponents = new HashSet<Testcasecomponent>();
+            Testcaseplans = new HashSet<Testcaseplan>();
+            Testcasetags = new HashSet<Testcasetag>();
+            Testexecutions = new HashSet<TestRuns.Testexecution>();
         }
 
         public int Id { get; set; }
@@ -33,15 +33,15 @@ namespace tcms.Data.Kiwi
         public bool IsAutomated { get; set; }
 
         public virtual AuthUser Author { get; set; }
-        public virtual TestcasesTestcasestatus CaseStatus { get; set; }
-        public virtual TestcasesCategory Category { get; set; }
+        public virtual Testcasestatus CaseStatus { get; set; }
+        public virtual Category Category { get; set; }
         public virtual AuthUser DefaultTester { get; set; }
         public virtual ManagementPriority Priority { get; set; }
         public virtual AuthUser Reviewer { get; set; }
-        public virtual TestcasesTestcaseemailsetting TestcasesTestcaseemailsetting { get; set; }
-        public virtual ICollection<TestcasesTestcasecomponent> TestcasesTestcasecomponents { get; set; }
-        public virtual ICollection<TestcasesTestcaseplan> TestcasesTestcaseplans { get; set; }
-        public virtual ICollection<TestcasesTestcasetag> TestcasesTestcasetags { get; set; }
-        public virtual ICollection<TestrunsTestexecution> TestrunsTestexecutions { get; set; }
+        public virtual Testcaseemailsetting Testcaseemailsetting { get; set; }
+        public virtual ICollection<Testcasecomponent> Testcasecomponents { get; set; }
+        public virtual ICollection<Testcaseplan> Testcaseplans { get; set; }
+        public virtual ICollection<Testcasetag> Testcasetags { get; set; }
+        public virtual ICollection<TestRuns.Testexecution> Testexecutions { get; set; }
     }
 }

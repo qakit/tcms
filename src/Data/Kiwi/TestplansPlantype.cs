@@ -9,13 +9,13 @@ namespace tcms.Data.Kiwi
     {
         public TestplansPlantype()
         {
-            TestplansTestplans = new HashSet<TestplansTestplan>();
+            Testplans = new HashSet<TestplansTestplan>();
         }
 
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public virtual ICollection<TestplansTestplan> TestplansTestplans { get; set; }
+        public virtual ICollection<TestplansTestplan> Testplans { get; set; }
     }
 }

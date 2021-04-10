@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 #nullable disable
 
-namespace tcms.Data.Kiwi
+namespace tcms.Data.Kiwi.TestCases
 {
-    public partial class TestcasesBugsystem
+    public partial class Bugsystem
     {
         public int Id { get; set; }
         public string Name { get; set; }

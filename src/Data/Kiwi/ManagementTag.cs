@@ -10,17 +10,17 @@ namespace tcms.Data.Kiwi
         public ManagementTag()
         {
             BugsBugTags = new HashSet<BugsBugTag>();
-            TestcasesTestcasetags = new HashSet<TestcasesTestcasetag>();
-            TestplansTestplantags = new HashSet<TestplansTestplantag>();
-            TestrunsTestruntags = new HashSet<TestrunsTestruntag>();
+            Testcasetags = new HashSet<TestCases.Testcasetag>();
+            Testplantags = new HashSet<TestplansTestplantag>();
+            Testruntags = new HashSet<TestRuns.Testruntag>();
         }
 
         public int Id { get; set; }
         public string Name { get; set; }
 
         public virtual ICollection<BugsBugTag> BugsBugTags { get; set; }
-        public virtual ICollection<TestcasesTestcasetag> TestcasesTestcasetags { get; set; }
-        public virtual ICollection<TestplansTestplantag> TestplansTestplantags { get; set; }
-        public virtual ICollection<TestrunsTestruntag> TestrunsTestruntags { get; set; }
+        public virtual ICollection<TestCases.Testcasetag> Testcasetags { get; set; }
+        public virtual ICollection<TestplansTestplantag> Testplantags { get; set; }
+        public virtual ICollection<TestRuns.Testruntag> Testruntags { get; set; }
     }
 }

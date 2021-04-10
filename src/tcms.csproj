@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Data\Kiwi\*.cs" />
+    <Compile Remove="Data\Kiwi\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>

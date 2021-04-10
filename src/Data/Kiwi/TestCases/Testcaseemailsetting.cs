@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 #nullable disable
 
-namespace tcms.Data.Kiwi
+namespace tcms.Data.Kiwi.TestCases
 {
-    public partial class TestcasesTestcaseemailsetting
+    public partial class Testcaseemailsetting
     {
         public int Id { get; set; }
         public bool NotifyOnCaseUpdate { get; set; }
@@ -18,6 +18,6 @@ namespace tcms.Data.Kiwi
         public int CaseId { get; set; }
         public string CcList { get; set; }
 
-        public virtual TestcasesTestcase Case { get; set; }
+        public virtual Testcase Case { get; set; }
     }
 }

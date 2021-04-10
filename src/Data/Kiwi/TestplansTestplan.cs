@@ -10,9 +10,9 @@ namespace tcms.Data.Kiwi
         public TestplansTestplan()
         {
             InverseParent = new HashSet<TestplansTestplan>();
-            TestcasesTestcaseplans = new HashSet<TestcasesTestcaseplan>();
-            TestplansTestplantags = new HashSet<TestplansTestplantag>();
-            TestrunsTestruns = new HashSet<TestrunsTestrun>();
+            Testcaseplans = new HashSet<TestCases.Testcaseplan>();
+            Testplantags = new HashSet<TestplansTestplantag>();
+            Testruns = new HashSet<TestRuns.Testrun>();
         }
 
         public int Id { get; set; }
@@ -32,10 +32,10 @@ namespace tcms.Data.Kiwi
         public virtual ManagementProduct Product { get; set; }
         public virtual ManagementVersion ProductVersion { get; set; }
         public virtual TestplansPlantype Type { get; set; }
-        public virtual TestplansTestplanemailsetting TestplansTestplanemailsetting { get; set; }
+        public virtual TestplansTestplanemailsetting Testplanemailsetting { get; set; }
         public virtual ICollection<TestplansTestplan> InverseParent { get; set; }
-        public virtual ICollection<TestcasesTestcaseplan> TestcasesTestcaseplans { get; set; }
-        public virtual ICollection<TestplansTestplantag> TestplansTestplantags { get; set; }
-        public virtual ICollection<TestrunsTestrun> TestrunsTestruns { get; set; }
+        public virtual ICollection<TestCases.Testcaseplan> Testcaseplans { get; set; }
+        public virtual ICollection<TestplansTestplantag> Testplantags { get; set; }
+        public virtual ICollection<TestRuns.Testrun> Testruns { get; set; }
     }
 }

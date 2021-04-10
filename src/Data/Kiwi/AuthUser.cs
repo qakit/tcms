@@ -21,19 +21,19 @@ namespace tcms.Data.Kiwi
             KiwiAuthUseractivationkeys = new HashSet<KiwiAuthUseractivationkey>();
             ManagementComponentInitialOwners = new HashSet<ManagementComponent>();
             ManagementComponentInitialQaContacts = new HashSet<ManagementComponent>();
-            TestcasesHistoricaltestcases = new HashSet<TestcasesHistoricaltestcase>();
-            TestcasesTestcaseAuthors = new HashSet<TestcasesTestcase>();
-            TestcasesTestcaseDefaultTesters = new HashSet<TestcasesTestcase>();
-            TestcasesTestcaseReviewers = new HashSet<TestcasesTestcase>();
+            Historicaltestcases = new HashSet<TestCases.Historicaltestcase>();
+            TestcaseAuthors = new HashSet<TestCases.Testcase>();
+            TestcaseDefaultTesters = new HashSet<TestCases.Testcase>();
+            TestcaseReviewers = new HashSet<TestCases.Testcase>();
             TestplansHistoricaltestplans = new HashSet<TestplansHistoricaltestplan>();
-            TestplansTestplans = new HashSet<TestplansTestplan>();
-            TestrunsHistoricaltestexecutions = new HashSet<TestrunsHistoricaltestexecution>();
-            TestrunsHistoricaltestruns = new HashSet<TestrunsHistoricaltestrun>();
-            TestrunsTestexecutionAssignees = new HashSet<TestrunsTestexecution>();
-            TestrunsTestexecutionTestedBies = new HashSet<TestrunsTestexecution>();
-            TestrunsTestrunDefaultTesters = new HashSet<TestrunsTestrun>();
-            TestrunsTestrunManagers = new HashSet<TestrunsTestrun>();
-            TestrunsTestrunccs = new HashSet<TestrunsTestruncc>();
+            Testplans = new HashSet<TestplansTestplan>();
+            Historicaltestexecutions = new HashSet<TestRuns.Historicaltestexecution>();
+            Historicaltestruns = new HashSet<TestRuns.Historicaltestrun>();
+            TestexecutionAssignees = new HashSet<TestRuns.Testexecution>();
+            TestexecutionTestedBies = new HashSet<TestRuns.Testexecution>();
+            TestrunDefaultTesters = new HashSet<TestRuns.Testrun>();
+            TestrunManagers = new HashSet<TestRuns.Testrun>();
+            Testrunccs = new HashSet<TestRuns.Testruncc>();
         }
 
         public int Id { get; set; }
@@ -60,18 +60,18 @@ namespace tcms.Data.Kiwi
         public virtual ICollection<KiwiAuthUseractivationkey> KiwiAuthUseractivationkeys { get; set; }
         public virtual ICollection<ManagementComponent> ManagementComponentInitialOwners { get; set; }
         public virtual ICollection<ManagementComponent> ManagementComponentInitialQaContacts { get; set; }
-        public virtual ICollection<TestcasesHistoricaltestcase> TestcasesHistoricaltestcases { get; set; }
-        public virtual ICollection<TestcasesTestcase> TestcasesTestcaseAuthors { get; set; }
-        public virtual ICollection<TestcasesTestcase> TestcasesTestcaseDefaultTesters { get; set; }
-        public virtual ICollection<TestcasesTestcase> TestcasesTestcaseReviewers { get; set; }
+        public virtual ICollection<TestCases.Historicaltestcase> Historicaltestcases { get; set; }
+        public virtual ICollection<TestCases.Testcase> TestcaseAuthors { get; set; }
+        public virtual ICollection<TestCases.Testcase> TestcaseDefaultTesters { get; set; }
+        public virtual ICollection<TestCases.Testcase> TestcaseReviewers { get; set; }
         public virtual ICollection<TestplansHistoricaltestplan> TestplansHistoricaltestplans { get; set; }
-        public virtual ICollection<TestplansTestplan> TestplansTestplans { get; set; }
-        public virtual ICollection<TestrunsHistoricaltestexecution> TestrunsHistoricaltestexecutions { get; set; }
-        public virtual ICollection<TestrunsHistoricaltestrun> TestrunsHistoricaltestruns { get; set; }
-        public virtual ICollection<TestrunsTestexecution> TestrunsTestexecutionAssignees { get; set; }
-        public virtual ICollection<TestrunsTestexecution> TestrunsTestexecutionTestedBies { get; set; }
-        public virtual ICollection<TestrunsTestrun> TestrunsTestrunDefaultTesters { get; set; }
-        public virtual ICollection<TestrunsTestrun> TestrunsTestrunManagers { get; set; }
-        public virtual ICollection<TestrunsTestruncc> TestrunsTestrunccs { get; set; }
+        public virtual ICollection<TestplansTestplan> Testplans { get; set; }
+        public virtual ICollection<TestRuns.Historicaltestexecution> Historicaltestexecutions { get; set; }
+        public virtual ICollection<TestRuns.Historicaltestrun> Historicaltestruns { get; set; }
+        public virtual ICollection<TestRuns.Testexecution> TestexecutionAssignees { get; set; }
+        public virtual ICollection<TestRuns.Testexecution> TestexecutionTestedBies { get; set; }
+        public virtual ICollection<TestRuns.Testrun> TestrunDefaultTesters { get; set; }
+        public virtual ICollection<TestRuns.Testrun> TestrunManagers { get; set; }
+        public virtual ICollection<TestRuns.Testruncc> Testrunccs { get; set; }
     }
 }

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 #nullable disable
 
-namespace tcms.Data.Kiwi
+namespace tcms.Data.Kiwi.TestRuns
 {
-    public partial class TestrunsTestexecution
+    public partial class Testexecution
     {
-        public TestrunsTestexecution()
+        public Testexecution()
         {
             BugsBugExecutions = new HashSet<BugsBugExecution>();
             LinkreferenceLinkreferences = new HashSet<LinkreferenceLinkreference>();
@@ -27,9 +27,9 @@ namespace tcms.Data.Kiwi
 
         public virtual AuthUser Assignee { get; set; }
         public virtual ManagementBuild Build { get; set; }
-        public virtual TestcasesTestcase Case { get; set; }
-        public virtual TestrunsTestrun Run { get; set; }
-        public virtual TestrunsTestexecutionstatus Status { get; set; }
+        public virtual TestCases.Testcase Case { get; set; }
+        public virtual Testrun Run { get; set; }
+        public virtual Testexecutionstatus Status { get; set; }
         public virtual AuthUser TestedBy { get; set; }
         public virtual ICollection<BugsBugExecution> BugsBugExecutions { get; set; }
         public virtual ICollection<LinkreferenceLinkreference> LinkreferenceLinkreferences { get; set; }

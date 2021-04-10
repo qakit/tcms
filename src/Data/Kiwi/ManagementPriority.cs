@@ -9,13 +9,13 @@ namespace tcms.Data.Kiwi
     {
         public ManagementPriority()
         {
-            TestcasesTestcases = new HashSet<TestcasesTestcase>();
+            Testcases = new HashSet<TestCases.Testcase>();
         }
 
         public int Id { get; set; }
         public string Value { get; set; }
         public bool IsActive { get; set; }
 
-        public virtual ICollection<TestcasesTestcase> TestcasesTestcases { get; set; }
+        public virtual ICollection<TestCases.Testcase> Testcases { get; set; }
     }
 }

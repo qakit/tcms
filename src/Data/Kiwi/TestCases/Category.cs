@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 #nullable disable
 
-namespace tcms.Data.Kiwi
+namespace tcms.Data.Kiwi.TestCases
 {
-    public partial class TestcasesCategory
+    public partial class Category
     {
-        public TestcasesCategory()
+        public Category()
         {
-            TestcasesTestcases = new HashSet<TestcasesTestcase>();
+            Testcases = new HashSet<TestCases.Testcase>();
         }
 
         public int Id { get; set; }
@@ -18,6 +18,6 @@ namespace tcms.Data.Kiwi
         public int ProductId { get; set; }
 
         public virtual ManagementProduct Product { get; set; }
-        public virtual ICollection<TestcasesTestcase> TestcasesTestcases { get; set; }
+        public virtual ICollection<Testcase> Testcases { get; set; }
     }
 }

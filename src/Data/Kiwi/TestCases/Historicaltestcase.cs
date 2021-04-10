@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 #nullable disable
 
-namespace tcms.Data.Kiwi
+namespace tcms.Data.Kiwi.TestCases
 {
-    public partial class TestcasesHistoricaltestcase
+    public partial class Historicaltestcase
     {
         public int Id { get; set; }
         public DateTime CreateDate { get; set; }

@@ -9,7 +9,7 @@ namespace tcms.Data.Kiwi
     {
         public ManagementComponent()
         {
-            TestcasesTestcasecomponents = new HashSet<TestcasesTestcasecomponent>();
+            Testcasecomponents = new HashSet<TestCases.Testcasecomponent>();
         }
 
         public int Id { get; set; }
@@ -22,6 +22,6 @@ namespace tcms.Data.Kiwi
         public virtual AuthUser InitialOwner { get; set; }
         public virtual AuthUser InitialQaContact { get; set; }
         public virtual ManagementProduct Product { get; set; }
-        public virtual ICollection<TestcasesTestcasecomponent> TestcasesTestcasecomponents { get; set; }
+        public virtual ICollection<TestCases.Testcasecomponent> Testcasecomponents { get; set; }
     }
 }

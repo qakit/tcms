@@ -14,6 +14,6 @@ namespace tcms.Data.Kiwi
         public DateTime CreatedOn { get; set; }
         public bool IsDefect { get; set; }
 
-        public virtual TestrunsTestexecution Execution { get; set; }
+        public virtual TestRuns.Testexecution Execution { get; set; }
     }
 }
