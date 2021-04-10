@@ -8,7 +8,8 @@
 
 ### Creating DB
 * install PostgreSQL
-* enter `psql -U postgres -c "CREATE USER tcms WITH PASSWORD 'jw8s0F4' CREATEDB;"` to create a new user
+* issue `psql -U postgres -c "CREATE USER tcms WITH PASSWORD 'jw8s0F4' CREATEDB;"` to create a new user
+* issue `psql -U postgres -c "GRANT CREATE ON DATABASE tcms TO tcms;"`
 * `dotnet ef database update` to create a database schema
 
 ### Auth
@@ -21,6 +22,9 @@
 1. removed migrations, updated provider to Postgres and generated initial migration again
 1. imported `dotnet ef dbcontext scaffold ...` Kiwi model and excluded it from build
 1. moved server source code under src folder
+1. defined a Products model (some properties are defined in ApplicationDbContext)
+** created migration `dotnet ef migrations add Products`
+** update database `dotnet ef database update`
 
 
 ## Misc
@@ -30,3 +34,4 @@
 
 * https://docs.microsoft.com/ru-ru/ef/core/
 * https://purple.telstra.com/blog/asp-net-core-identity-with-postgresql
+* https://docs.microsoft.com/ru-ru/ef/core/managing-schemas/migrations/?tabs=dotnet-core-cli
