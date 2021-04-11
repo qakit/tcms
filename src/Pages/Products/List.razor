@@ -1,0 +1,66 @@
+@page "/products"
+
+@using Microsoft.EntityFrameworkCore
+@using Data.Models
+
+@inject Data.ApplicationDbContext db
+@inject IJSRuntime js
+
+<h3>Products</h3>
+<small>Define products under development.</small>
+<div class="form-group">
+    <a class="btn btn-success" href="products/create"><i class="oi oi-plus"></i> Create New</a>
+</div>
+<br>
+@if (products == null)
+{
+    <text>Loading...</text>
+}
+else if (products.Count == 0)
+{
+    <text>No Records Found.</text>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Product p in products)
+            {
+                <tr>
+                    <td>@p.Id</td>
+                    <td>@p.Name</td>
+                    <td>@p.Description</td>
+                    <td>
+                        <a class="btn btn-success" href="products/edit/@p.Id">Edit</a>
+                        <button class="btn btn-danger" @onclick="@(() => Delete(p.Id))">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@code {
+    IList<Product> products { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        products = await db.Products.ToListAsync();
+    }
+    async Task Delete(int productId)
+    {
+        var product = products.First(x => x.Id == productId);
+        if (await js.InvokeAsync<bool>("confirm", $"Do you want to delete {product.Name}'s ({product.Id}) Record?"))
+        {
+            db.Remove(product);
+            await db.SaveChangesAsync();
+            await OnInitializedAsync();
+        }
+    }
+}

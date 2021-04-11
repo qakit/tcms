@@ -25,6 +25,7 @@
 1. defined a Products model (some properties are defined in ApplicationDbContext)
 ** created migration `dotnet ef migrations add Products`
 ** update database `dotnet ef database update`
+1. added simplistic CRUD forms for products (Pages/Products). Using the article (from the refs) but skipped API/controller part, so the form communicates Db directly
 
 
 ## Misc
@@ -35,3 +36,4 @@
 * https://docs.microsoft.com/ru-ru/ef/core/
 * https://purple.telstra.com/blog/asp-net-core-identity-with-postgresql
 * https://docs.microsoft.com/ru-ru/ef/core/managing-schemas/migrations/?tabs=dotnet-core-cli
+* https://codewithmukesh.com/blog/blazor-crud-with-entity-framework-core/ - creating sample CRUD

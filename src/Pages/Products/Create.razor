@@ -1,0 +1,23 @@
+@page "/products/create"
+@using Data.Models
+
+@inject NavigationManager uriHelper
+@inject Data.ApplicationDbContext db
+@inject IJSRuntime js
+
+<h3>Create</h3>
+
+<Form ButtonText="Create product" product="@product"
+            OnValidSubmit="@CreateProduct" />
+
+@code {
+    Product product = new Product();
+    async Task CreateProduct()
+    {
+        db.Add(product);
+        js.InvokeVoidAsync("console.log", "product created", product);
+        //await http.PostAsJsonAsync("api/developer", product);
+        await db.SaveChangesAsync();
+        uriHelper.NavigateTo("products");
+    }
+}
