@@ -8,10 +8,13 @@ namespace tcms.Data.Models
 	/// </summary>
 	public class TestCaseStatus
 	{
-		[Key]
 		public int TestCaseStatusId { get; set; }
-		[Required]
+
+		[Required, StringLength(25)]
 		public string Name { get; set; }
+
+		public bool IsApproved { get; set; } = false;
+
 		[StringLength(250)]
 		public string Description { get; set; }
 

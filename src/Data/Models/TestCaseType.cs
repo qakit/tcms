@@ -9,9 +9,9 @@ namespace tcms.Data.Models
 	/// </summary>
 	public class TestCaseType
 	{
-		[Key]
 		public int TestCaseTypeId { get; set; }
-		[Required]
+
+		[Required, StringLength(50)]
 		public string Name { get; set; }
 
 		public virtual ICollection<TestCase> TestCases { get; set; }
