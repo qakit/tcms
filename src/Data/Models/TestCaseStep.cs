@@ -4,7 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace tcms.Data.Models
 {
-	public class TestCaseStep
+	[Table("Steps", Schema = "testcases")]
+	public class TestCaseStep : BaseEntity
 	{
 		public int TestCaseStepId { get; set; }
 
