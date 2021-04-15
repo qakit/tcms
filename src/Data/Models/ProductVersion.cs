@@ -4,7 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace tcms.Data.Models
 {
-	public class ProductVersion
+	[Table("ProductVersions", Schema = "core")]
+	public class ProductVersion : BaseEntity
 	{
 		public int ProductVersionId { get; set; }
 
@@ -14,8 +15,10 @@ namespace tcms.Data.Models
 		[StringLength(250)]
 		public string Description { get; set; }
 
+		[Column(TypeName ="Date")]
 		public DateTime StartDate { get; set; }
 
+		[Column(TypeName = "Date")]
 		public DateTime EndDate { get; set; }
 
 		public bool IsActive { get; set; }

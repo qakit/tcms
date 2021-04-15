@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace tcms.Data.Models
 {
-	/// <summary>
-	/// By Default should at least 3 statuses: Proposed, Approved, RequireUpdate e.g.
-	/// </summary>
-	public class TestCaseStatus
+	[Table("Statuses", Schema = "testcases")]
+	public class TestCaseStatus : BaseEntity
 	{
 		public int TestCaseStatusId { get; set; }
 

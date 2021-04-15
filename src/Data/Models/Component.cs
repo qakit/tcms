@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace tcms.Data.Models
 {
-	/// <summary>
-	///By default we have at least one component (e.g. 'Default')
-	/// </summary>
-	public class Component
+	[Index(nameof(Name), IsUnique = true)]
+	[Table("Components", Schema = "core")]
+	public class Component : BaseEntity
 	{
 		public int ComponentId { get; set; }
 

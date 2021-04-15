@@ -3,7 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace tcms.Data.Models
 {
-	public class Attachment
+	[Table("Attachments", Schema = "core")]
+	public class Attachment : BaseEntity
 	{
 		public int AttachmentId { get; set; }
 
@@ -15,9 +16,5 @@ namespace tcms.Data.Models
 		public string AttachmentFile { get; set; }
 
 		public string ContentType { get; set; }
-
-		[ForeignKey("Step")]
-		public int StepId { get; set; }
-		public virtual TestCaseStep Step { get; set; }
 	}
 }

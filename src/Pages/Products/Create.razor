@@ -17,7 +17,7 @@
         db.Add(product);
         await js.InvokeVoidAsync("console.log", "product created", product);
         //await http.PostAsJsonAsync("api/developer", product);
-        await db.SaveChangesAsync();
+        db.SaveChanges();
         uriHelper.NavigateTo("products");
     }
 }

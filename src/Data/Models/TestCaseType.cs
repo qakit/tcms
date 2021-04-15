@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace tcms.Data.Models
 {
-	/// <summary>
-	/// By default we should have several types: Functional, Usability, Performance, Regression.. 
-	/// Others can be added manually e.g.
-	/// </summary>
-	public class TestCaseType
+	[Index(nameof(Name), IsUnique = true)]
+	[Table("Types", Schema = "testcases")]
+	public class TestCaseType : BaseEntity
 	{
 		public int TestCaseTypeId { get; set; }
 

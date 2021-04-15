@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace tcms.Data.Models
 {
-	/// <summary>
-	/// By default: hight, low, medium? other can be added/edited manually
-	/// </summary>
-	public class TestCasePriority
+	[Table("Priorities", Schema = "testcases")]
+	public class TestCasePriority : BaseEntity
 	{
 		public int TestCasePriorityId { get; set; }
 
