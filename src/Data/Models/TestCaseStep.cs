@@ -1,17 +1,25 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace tcms.Data.Models
 {
 	public class TestCaseStep
 	{
-		[Key]
 		public int TestCaseStepId { get; set; }
-		public string Description { get; set; }
-		//Do we need it? E.g. to show correctly in UI
+
+		[Required]
+		public string Text { get; set; }
+
 		public bool IsPrecondition { get; set; } = false;
 
-		[ForeignKey("TestCaseId")]
+		[Required]
+		public int Ordinal { get; set; }
+
+		[ForeignKey("TestCase")]
+		public int TestCaseId { get; set; }
 		public virtual TestCase TestCase { get; set; }
+
+		public virtual ICollection<Attachment> Attachments { get; set; }
 	}
 }

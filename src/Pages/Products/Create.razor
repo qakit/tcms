@@ -15,7 +15,7 @@
     async Task CreateProduct()
     {
         db.Add(product);
-        js.InvokeVoidAsync("console.log", "product created", product);
+        await js.InvokeVoidAsync("console.log", "product created", product);
         //await http.PostAsJsonAsync("api/developer", product);
         await db.SaveChangesAsync();
         uriHelper.NavigateTo("products");

@@ -8,10 +8,11 @@ namespace tcms.Data.Models
 	/// </summary>
 	public class TestCasePriority
 	{
-		[Key]
 		public int TestCasePriorityId { get; set; }
+
 		[Required]
 		public string Name { get; set; }
+
 		public virtual ICollection<TestCase> TestCases { get; set; }
 	}
 }

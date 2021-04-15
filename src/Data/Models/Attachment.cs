@@ -5,16 +5,19 @@ namespace tcms.Data.Models
 {
 	public class Attachment
 	{
-		[Key]
 		public int AttachmentId { get; set; }
 
-		[Required]
-		[MaxLength(100)]
+		[Required, StringLength(100)]
 		public string Name { get; set; }
 
 		public byte[] Content { get; set; }
 
-		[ForeignKey("TestCaseStepId")]
+		public string AttachmentFile { get; set; }
+
+		public string ContentType { get; set; }
+
+		[ForeignKey("Step")]
+		public int StepId { get; set; }
 		public virtual TestCaseStep Step { get; set; }
 	}
 }

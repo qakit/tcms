@@ -17,7 +17,7 @@
 
     protected async override Task OnParametersSetAsync()
     {
-        product = await db.Products.FirstOrDefaultAsync(p => p.Id == productId);
+        product = await db.Products.FirstOrDefaultAsync(p => p.ProductId == productId);
     }
 
     async Task EditProduct()
