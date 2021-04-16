@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Mapster;
 
 using tcms.Data;
 using tcms.Data.Models;
@@ -25,14 +23,14 @@ namespace tcms.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<ProductResponseDto>>> GetProducts()
         {
-            return await _context.Products.ProjectToType<ProductDto>().ToListAsync();
+            return await _context.Products.Select(p => ProductResponseDto.FromProduct(p)).ToListAsync();
         }
 
         // GET: api/Products/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProductDto>> GetProduct(int id)
+        public async Task<ActionResult<ProductResponseDto>> GetProduct(int id)
         {
             var product = await _context.Products.FindAsync(id);
 
@@ -41,7 +39,7 @@ namespace tcms.Controllers
                 return NotFound();
             }
 
-            return product.Adapt<ProductDto>();
+            return ProductResponseDto.FromProduct(product);
         }
 
         // PUT: api/Products/5

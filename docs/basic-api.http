@@ -25,9 +25,35 @@ content-type: application/json
 }
 
 ### Partial update product
-PUT {{host}}/api/products/9
+PUT {{host}}/api/products/10
 content-type: application/json
 
 {
-  "description": "test record 12341"
+  "description": "test record 1"
 }
+
+### Get product version
+GET {{host}}/api/products/1/versions
+
+### Create a new product version
+POST {{host}}/api/products/1/versions/
+content-type: application/json
+
+{
+  "name": "14",
+  "description": "Official public release",
+  "isActive": true
+}
+
+### Update product version
+PUT {{host}}/api/products/1/versions/1
+content-type: application/json
+
+{
+  "description": "Official public release 14",
+  "isActive": true
+}
+
+### Update product version
+DELETE {{host}}/api/products/1/versions/2
+

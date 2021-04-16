@@ -1,10 +1,3 @@
-using System;
-using Mapster;
-using tcms.Data.Models;
-
-// TypeAdapterConfig<PostProductDto, Product>.NewConfig()
-//     .MapWith(dto => new Product { Name = dto.Name, Description = dto.Description });
-
 namespace tcms.Data.Models
 {
     public partial class PostProductDto
@@ -23,4 +16,5 @@ namespace tcms.Data.Models
             return product;
         }
     }
+
 }

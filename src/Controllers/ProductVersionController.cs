@@ -23,17 +23,18 @@ namespace tcms.Controllers
 
         // GET: api/Products/5/Versions
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductVersion>>> GetProductVersions([FromRoute]int productId)
+        public async Task<ActionResult<IEnumerable<ProductVersionResponseDto>>> GetProductVersions([FromRoute]int productId)
         {
-            return await _context.ProductVersion.Where(p => p.ProductId == productId).ToListAsync();
+            return await _context.ProductVersion.Where(p => p.ProductId == productId).Select(p => ProductVersionResponseDto.Create(p)).ToListAsync();
         }
 
         // GET: api/Products/5/Versions/1
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProductVersion>> GetProductVersion([FromRoute]int productId, int id)
+        public async Task<ActionResult<ProductVersionResponseDto>> GetProductVersion([FromRoute]int productId, int id)
         {
             var productVersion = await _context.ProductVersion
                 .Where(p => p.ProductId == productId && p.ProductVersionId == id)
+                .Select(p => ProductVersionResponseDto.Create(p))
                 .FirstAsync();
 
             if (productVersion == null)
@@ -47,13 +48,17 @@ namespace tcms.Controllers
         // PUT: api/Products/5/Versions/1
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProductVersion(int id, ProductVersion productVersion)
+        public async Task<IActionResult> PutProductVersion([FromRoute]int productId, int id, PostProductVersionDto productVersionDto)
         {
-            throw new NotImplementedException();
-            if (id != productVersion.ProductVersionId)
+            var productVersion = await _context.ProductVersion
+                .Where(p => p.ProductId == productId && p.ProductVersionId == id)
+                .FirstAsync();
+            if (productVersion == null)
             {
-                return BadRequest();
+                return NotFound();
             }
+
+            productVersionDto.MergeTo(productVersion);
 
             _context.Entry(productVersion).State = EntityState.Modified;
 
@@ -79,9 +84,11 @@ namespace tcms.Controllers
         // POST: api/Products/5/Versions
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<ProductVersion>> PostProductVersion(ProductVersion productVersion)
+        public async Task<ActionResult<ProductVersion>> PostProductVersion([FromRoute]int productId, PostProductVersionDto productVersionDto)
         {
-            throw new NotImplementedException();
+            var productVersion = productVersionDto.Adapt();
+            productVersion.ProductId = productId;
+
             _context.ProductVersion.Add(productVersion);
             await _context.SaveChangesAsync();
 
