@@ -1,0 +1,33 @@
+@host = http://localhost:5000
+
+### Get all products
+GET {{host}}/api/products
+
+### Get one product
+GET {{host}}/api/products/1
+
+### Create product
+POST {{host}}/api/products
+content-type: application/json
+
+{
+  "name": "test1",
+  "description": "test record"
+}
+
+### Update product
+PUT {{host}}/api/products/9
+content-type: application/json
+
+{
+  "name": "test11",
+  "description": "test record 123"
+}
+
+### Partial update product
+PUT {{host}}/api/products/9
+content-type: application/json
+
+{
+  "description": "test record 12341"
+}

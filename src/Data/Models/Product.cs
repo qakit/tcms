@@ -1,12 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Mapster;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace tcms.Data.Models
 {
-	[Index(nameof(Name), IsUnique = true)]
+	[AdaptTo("[name]Dto")]
 	[Table("Products", Schema = "core")]
+	[Index(nameof(Name), IsUnique = true)]
 	public class Product : BaseEntity
 	{
 		public int ProductId { get; set; }
@@ -17,8 +19,10 @@ namespace tcms.Data.Models
 		[StringLength(500)]
 		public string Description { get; set; }
 
+		[AdaptIgnore]
 		public virtual ICollection<ProductVersion> Versions { get; set; }
 
+		[AdaptIgnore]
 		public virtual ICollection<Component> Components { get; set; }
 	}
 }

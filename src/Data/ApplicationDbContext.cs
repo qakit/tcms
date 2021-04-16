@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 using tcms.Data.Models;
 
 namespace tcms.Data
@@ -103,13 +105,19 @@ namespace tcms.Data
 			return base.SaveChanges();
 		}
 
+		public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+		{
+			AddTimestamps();
+			return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+		}
+
 		private void AddTimestamps()
 		{
 			ChangeTracker.DetectChanges();
 
 			var entities = ChangeTracker.Entries().Where(x => x.Entity is BaseEntity && (x.State == EntityState.Added || x.State == EntityState.Modified));
 
-			var userId = httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+			var userId = httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
 			var currentUsername = !string.IsNullOrEmpty(userId)
 				? userId
@@ -127,5 +135,19 @@ namespace tcms.Data
 				((BaseEntity)entity.Entity).ModifiedBy = currentUsername;
 			}
 		}
+
+		public DbSet<tcms.Data.Models.ProductVersion> ProductVersion { get; set; }
+
+		public DbSet<tcms.Data.Models.Component> Component { get; set; }
+
+		public DbSet<tcms.Data.Models.TestCasePriority> TestCasePriority { get; set; }
+
+		public DbSet<tcms.Data.Models.TestCaseStatus> TestCaseStatus { get; set; }
+
+		public DbSet<tcms.Data.Models.TestCaseType> TestCaseType { get; set; }
+
+		public DbSet<tcms.Data.Models.TestCase> TestCase { get; set; }
+
+		public DbSet<tcms.Data.Models.TestCaseStep> TestCaseStep { get; set; }
 	}
 }

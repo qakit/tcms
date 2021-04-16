@@ -26,10 +26,12 @@
 ** created migration `dotnet ef migrations add Products`
 ** update database `dotnet ef database update`
 1. added simplistic CRUD forms for products (Pages/Products). Using the article (from the refs) but skipped API/controller part, so the form communicates Db directly
+1. added a few API controllers using codegenerator (see below)
 
 
 ## Misc
 ** `dotnet ef dbcontext scaffold "Host=localhost;Port=5433;Database=kiwi;Username=kiwi;Password=kiwi" Npgsql.EntityFrameworkCore.PostgreSQL -o Data/Kiwi`
+** `dotnet aspnet-codegenerator controller -name ProductController -actions -api -m Product -dc ApplicationDbContext -outDir Controllers`
 
 ## References
 
