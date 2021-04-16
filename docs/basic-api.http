@@ -36,7 +36,7 @@ content-type: application/json
 GET {{host}}/api/products/1/versions
 
 ### Create a new product version
-POST {{host}}/api/products/1/versions/
+POST {{host}}/api/products/1/versions
 content-type: application/json
 
 {
@@ -55,5 +55,5 @@ content-type: application/json
 }
 
 ### Update product version
-DELETE {{host}}/api/products/1/versions/2
+DELETE {{host}}/api/products/1/versions/5
 

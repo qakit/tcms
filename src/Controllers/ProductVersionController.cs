@@ -92,7 +92,7 @@ namespace tcms.Controllers
             _context.ProductVersion.Add(productVersion);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProductVersion", new { id = productVersion.ProductVersionId }, productVersion);
+            return CreatedAtAction("GetProductVersion", new { id = productVersion.ProductVersionId, productId = productId }, productVersion);
         }
 
         // DELETE: api/Products/5/Versions/1
