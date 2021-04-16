@@ -20,32 +20,17 @@ namespace tcms.Data
 		}
 
 		public DbSet<Product> Products { get; set; }
+		public DbSet<tcms.Data.Models.ProductVersion> ProductVersion { get; set; }
+		public DbSet<tcms.Data.Models.Component> Component { get; set; }
+		public DbSet<tcms.Data.Models.TestCasePriority> TestCasePriority { get; set; }
+		public DbSet<tcms.Data.Models.TestCaseStatus> TestCaseStatus { get; set; }
+		public DbSet<tcms.Data.Models.TestCaseType> TestCaseType { get; set; }
+		public DbSet<tcms.Data.Models.TestCase> TestCase { get; set; }
+		public DbSet<tcms.Data.Models.TestCaseStep> TestCaseStep { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
-
-			DatabaseSeed(modelBuilder);
-		}
-
-		private void DatabaseSeed(ModelBuilder modelBuilder)
-		{
-			modelBuilder.Entity<TestCasePriority>().HasData(
-				new TestCasePriority { TestCasePriorityId = 3, Name = "Low" },
-				new TestCasePriority { TestCasePriorityId = 2, Name = "Medium" },
-				new TestCasePriority { TestCasePriorityId = 1, Name = "High" });
-
-			modelBuilder.Entity<TestCaseStatus>().HasData(
-				new TestCaseStatus { TestCaseStatusId = 3, Name = "Approved", IsApproved = true },
-				new TestCaseStatus { TestCaseStatusId = 1, Name = "Proposed" },
-				new TestCaseStatus { TestCaseStatusId = 2, Name = "RequireChanges" });
-
-			modelBuilder.Entity<TestCaseType>().HasData(
-				new TestCaseType { TestCaseTypeId = 1, Name = "Functional" },
-				new TestCaseType { TestCaseTypeId = 2, Name = "Usability" },
-				new TestCaseType { TestCaseTypeId = 3, Name = "Performance" },
-				new TestCaseType { TestCaseTypeId = 4, Name = "Regression" });
-			
 			//Product
 			modelBuilder.Entity<Product>()
 				.HasMany(p => p.Components)
@@ -97,6 +82,27 @@ namespace tcms.Data
 				.HasMany(tct => tct.TestCases)
 				.WithOne(p => p.Type)
 				.OnDelete(DeleteBehavior.Restrict);
+
+			DatabaseSeed(modelBuilder);
+		}
+
+		private void DatabaseSeed(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<TestCasePriority>().HasData(
+				new TestCasePriority { TestCasePriorityId = 3, Name = "Low" },
+				new TestCasePriority { TestCasePriorityId = 2, Name = "Medium" },
+				new TestCasePriority { TestCasePriorityId = 1, Name = "High" });
+
+			modelBuilder.Entity<TestCaseStatus>().HasData(
+				new TestCaseStatus { TestCaseStatusId = 3, Name = "Approved", IsApproved = true },
+				new TestCaseStatus { TestCaseStatusId = 1, Name = "Proposed" },
+				new TestCaseStatus { TestCaseStatusId = 2, Name = "RequireChanges" });
+
+			modelBuilder.Entity<TestCaseType>().HasData(
+				new TestCaseType { TestCaseTypeId = 1, Name = "Functional" },
+				new TestCaseType { TestCaseTypeId = 2, Name = "Usability" },
+				new TestCaseType { TestCaseTypeId = 3, Name = "Performance" },
+				new TestCaseType { TestCaseTypeId = 4, Name = "Regression" });
 		}
 
 		public override int SaveChanges()
@@ -135,19 +141,5 @@ namespace tcms.Data
 				((BaseEntity)entity.Entity).ModifiedBy = currentUsername;
 			}
 		}
-
-		public DbSet<tcms.Data.Models.ProductVersion> ProductVersion { get; set; }
-
-		public DbSet<tcms.Data.Models.Component> Component { get; set; }
-
-		public DbSet<tcms.Data.Models.TestCasePriority> TestCasePriority { get; set; }
-
-		public DbSet<tcms.Data.Models.TestCaseStatus> TestCaseStatus { get; set; }
-
-		public DbSet<tcms.Data.Models.TestCaseType> TestCaseType { get; set; }
-
-		public DbSet<tcms.Data.Models.TestCase> TestCase { get; set; }
-
-		public DbSet<tcms.Data.Models.TestCaseStep> TestCaseStep { get; set; }
 	}
 }
