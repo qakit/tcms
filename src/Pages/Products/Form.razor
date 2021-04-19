@@ -1,27 +1,27 @@
 @using Data.Models
-<EditForm Model="@product" OnValidSubmit="@OnValidSubmit">
+@using Microsoft.EntityFrameworkCore
+
+@inject IJSRuntime js
+@inject ISnackbar _snackBar
+@inject Data.ApplicationDbContext db
+
+<EditForm Model="@product" OnValidSubmit="@OnSubmitHandler">
     <DataAnnotationsValidator />
-    <div class="form-group">
-        <label>Name :</label>
-        <div>
-            <InputText @bind-Value="@product.Name" />
-            <ValidationMessage For="@(() => product.Name)" />
-        </div>
-    </div>
-    <div class="form-group ">
-        <div>
-            <label>Description :</label>
-            <div>
-                <InputText @bind-Value="@product.Description" />
-                <ValidationMessage For="@(() => product.Description)" />
-            </div>
-        </div>
-    </div>
 
-    <button type="submit" class="btn btn-success">
-        @ButtonText
-    </button>
-
+    <MudCard>
+        <MudCardContent>
+            <MudItem xs="12" md="6">
+                <MudTextField For="@(() => product.Name)" @bind-Value="@product.Name" Required="true" Label="Name" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudTextField For="@(() => product.Description)" @bind-Value="@product.Description" Required="true" Label="Description" />
+            </MudItem>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">@ButtonText</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick=@Back>Back</MudButton>
+        </MudCardActions>
+    </MudCard>
 </EditForm>
 
 
@@ -29,4 +29,19 @@
     [Parameter] public Product product { get; set; }
     [Parameter] public string ButtonText { get; set; } = "Save";
     [Parameter] public EventCallback OnValidSubmit { get; set; }
+
+    async Task Back() {
+        await js.InvokeVoidAsync("history.back");
+    }
+    async Task OnSubmitHandler()
+    {
+        try {
+            await OnValidSubmit.InvokeAsync();
+        }
+        catch(DbUpdateException updError)
+        {
+            db.Entry(product).State = EntityState.Detached; // update the state so that the List form displays correct data
+            _snackBar.Add($"Failed to store data: {updError.InnerException.Message}", Severity.Error);
+        }
+    }
 }
