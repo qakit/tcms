@@ -1,16 +1,18 @@
 @page "/products"
 
 @using Microsoft.EntityFrameworkCore
+@using MudBlazor
 @using Data.Models
 
 @inject Data.ApplicationDbContext db
 @inject IJSRuntime js
+@inject Microsoft.AspNetCore.Components.NavigationManager navManager
 
-<h3>Products</h3>
-<small>Define products under development.</small>
-<div class="form-group">
-    <a class="btn btn-success" href="products/create"><i class="oi oi-plus"></i> Create New</a>
-</div>
+<MudText class="Typo.h3">Products</MudText>
+<MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Define products list</MudText>
+<MudDivider Class="my-2"/>
+
+<MudButton OnClick="@(() => CreateNew())">Create new</MudButton>
 <br>
 @if (products == null)
 {
@@ -22,36 +24,74 @@ else if (products.Count == 0)
 }
 else
 {
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (Product p in products)
-            {
-                <tr>
-                    <td>@p.ProductId</td>
-                    <td>@p.Name</td>
-                    <td>@p.Description</td>
-                    <td>
-                        <a class="btn btn-success" href="products/edit/@p.ProductId">Edit</a>
-                        <button class="btn btn-danger" @onclick="@(() => Delete(p.ProductId))">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <MudTable Items="@products" Dense="true" Striped="true"
+        CommitEditTooltip="Commit Edit" OnCommitEditClick="@(() => CommitEdit(currentProduct))"
+        @bind-SelectedItem="currentProduct" >
+        <HeaderContent>
+            <MudTh>Id</MudTh>
+            <MudTh>Name</MudTh>
+            <MudTh>Description</MudTh>
+            <MudTh>Command</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Id">@context.ProductId</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd>
+            </MudTd>
+        </RowTemplate>
+        <RowEditingTemplate>
+            <MudTd DataLabel="Id">@context.ProductId</MudTd>
+            <MudTd DataLabel="Name">
+                <MudTextField @bind-Value="@context.Name" Required />
+            </MudTd>
+            <MudTd DataLabel="Description">
+                <MudTextField @bind-Value="@context.Description" Required />
+            </MudTd>
+            <MudTd>
+                <MudToolBar Dense="true">
+                    @* <MudButton OnClick="@(() => this.CommitEdit(currentProduct))">Save</MudButton> *@
+                    <MudButton Color="Color.Inherit" OnClick="@(() => Delete(@context.ProductId))">Delete</MudButton>
+                </MudToolBar>
+            </MudTd>
+        </RowEditingTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+        </PagerContent>
+    </MudTable>
 }
 @code {
     IList<Product> products { get; set; }
+    Product currentProduct { get; set; }
     protected override async Task OnInitializedAsync()
     {
         products = await db.Products.ToListAsync();
+    }
+    void CreateNew ()
+    {
+        products.Add(new Product { ProductId = -1, Name = "New product", Description = "Description" });
+    }
+    async Task CommitEdit(Product product)
+    {
+        var isNew = product.ProductId == -1;
+        if (isNew)
+        {
+            product.ProductId = 0;
+            db.Entry(product).State = EntityState.Added;
+        }
+        else
+        {
+            db.Entry(product).State = EntityState.Modified;
+        }
+        try {
+            await db.SaveChangesAsync();
+            await js.InvokeVoidAsync("alert", $"Updated Successfully!");
+        }
+        catch(Exception e)
+        {
+            await js.InvokeVoidAsync("alert", $"Error! {e.InnerException.Message}");
+            if (isNew) product.ProductId = -1;
+        }
     }
     async Task Delete(int productId)
     {
@@ -62,5 +102,9 @@ else
             await db.SaveChangesAsync();
             await OnInitializedAsync();
         }
+    }
+    void Edit(int productId)
+    {
+        navManager.NavigateTo($"products/edit/{productId}");
     }
 }
