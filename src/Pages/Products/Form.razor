@@ -16,6 +16,42 @@
             <MudItem xs="12" md="6">
                 <MudTextField For="@(() => product.Description)" @bind-Value="@product.Description" Required="true" Label="Description" />
             </MudItem>
+            <MudPaper Elevation="4">
+                <MudText Typo="Typo.h6">Product versions</MudText>
+                <MudTable Items="@product.Versions" Dense="true" Striped="true">
+                    <HeaderContent>
+                        <MudTh><MudTableSortLabel SortBy="new Func<Product, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+                        <MudTh>Description</MudTh>
+                        <MudTh>Start</MudTh>
+                        <MudTh>End</MudTh>
+                        <MudTh>IsActive</MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="version">
+                        <MudTd DataLabel="Name">@version.Name</MudTd>
+                        <MudTd DataLabel="Description">@version.Description</MudTd>
+                        <MudTd DataLabel="Start Date">@($"{version.StartDate:d}")</MudTd>
+                        <MudTd DataLabel="End Date">@($"{version.EndDate:d}")</MudTd>
+                        <MudTd DataLabel="Is active">@version.IsActive</MudTd>
+                    </RowTemplate>
+                    <RowEditingTemplate Context="editver">
+                        <MudTd DataLabel="Name">
+                            <MudTextField @bind-Value="@editver.Name" Required />
+                        </MudTd>
+                        <MudTd DataLabel="Description">
+                            <MudTextField @bind-Value="@editver.Description" Required />
+                        </MudTd>
+                        <MudTd DataLabel="Start Date">
+                            <MudDatePicker @bind-Date="@editver.StartDate" Editable="true" />
+                        </MudTd>
+                        <MudTd DataLabel="End Date">
+                            <MudDatePicker @bind-Date="@editver.EndDate" Editable="true" />
+                        </MudTd>
+                        <MudTd DataLabel="Molar mass">
+                            <MudCheckBox @bind-Checked="@editver.IsActive" />
+                        </MudTd>
+                    </RowEditingTemplate>
+                </MudTable>
+            </MudPaper>
         </MudCardContent>
         <MudCardActions>
             <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">@ButtonText</MudButton>

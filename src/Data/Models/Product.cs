@@ -5,8 +5,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace tcms.Data.Models
 {
-	[Index(nameof(Name), IsUnique = true)]
 	[Table("Products", Schema = "core")]
+	[Index(nameof(Name), IsUnique = true)]
 	public class Product : BaseEntity
 	{
 		public int ProductId { get; set; }
