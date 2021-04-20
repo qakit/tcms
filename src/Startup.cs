@@ -26,9 +26,13 @@ namespace tcms
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMudServices();
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(
-                    Configuration.GetConnectionString("DefaultConnection")));
+            // services.AddDbContext<ApplicationDbContext>(options =>  // TODO should be removed?
+            //     options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContextFactory<ApplicationDbContext>(options =>
+                options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddScoped<ApplicationDbContext>(p => 
+                p.GetRequiredService<IDbContextFactory<ApplicationDbContext>>()
+                .CreateDbContext());
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddRazorPages();

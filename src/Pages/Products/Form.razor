@@ -1,9 +1,9 @@
+@using System.Linq
 @using Data.Models
 @using Microsoft.EntityFrameworkCore
 
 @inject IJSRuntime js
 @inject ISnackbar _snackBar
-@inject Data.ApplicationDbContext db
 
 <EditForm Model="@product" OnValidSubmit="@OnSubmitHandler">
     <DataAnnotationsValidator />
@@ -18,6 +18,7 @@
             </MudItem>
             <MudPaper Elevation="4">
                 <MudText Typo="Typo.h6">Product versions</MudText>
+                <MudButton OnClick="@(() => CreateNewVersion())">Create new</MudButton>
                 <MudTable Items="@product.Versions" Dense="true" Striped="true">
                     <HeaderContent>
                         <MudTh><MudTableSortLabel SortBy="new Func<Product, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
@@ -44,11 +45,17 @@
                             <MudDatePicker @bind-Date="@editver.StartDate" Editable="true" />
                         </MudTd>
                         <MudTd DataLabel="End Date">
-                            <MudDatePicker @bind-Date="@editver.EndDate" Editable="true" />
+                            <MudDatePicker Label="End date" @bind-Date="@editver.EndDate" Editable="true" />
                         </MudTd>
-                        <MudTd DataLabel="Molar mass">
+                        <MudTd DataLabel="Is active">
                             <MudCheckBox @bind-Checked="@editver.IsActive" />
                         </MudTd>
+                        <MudTd>
+                            <MudToolBar Dense="true">
+                                <MudButton Color="Color.Inherit" OnClick="@(() => DeleteVersion(@editver.ProductVersionId))">Delete</MudButton>
+                            </MudToolBar>
+                        </MudTd>
+
                     </RowEditingTemplate>
                 </MudTable>
             </MudPaper>
@@ -66,6 +73,8 @@
     [Parameter] public string ButtonText { get; set; } = "Save";
     [Parameter] public EventCallback OnValidSubmit { get; set; }
 
+    [Parameter] public Action<ProductVersion> OnDeleteVersion { get; set; }
+
     async Task Back() {
         await js.InvokeVoidAsync("history.back");
     }
@@ -76,8 +85,19 @@
         }
         catch(DbUpdateException updError)
         {
-            db.Entry(product).State = EntityState.Detached; // update the state so that the List form displays correct data
             _snackBar.Add($"Failed to store data: {updError.InnerException.Message}", Severity.Error);
+        }
+    }
+    void CreateNewVersion()
+    {
+        product.Versions.Add(new ProductVersion { Name = "1xx", Description = "New version" });
+    }
+    void DeleteVersion(int productVersionId)
+    {
+        var pv = product.Versions.FirstOrDefault(v => v.ProductVersionId == productVersionId);
+        if (pv != null) {
+            if (OnDeleteVersion != null) OnDeleteVersion(pv);
+            product.Versions.Remove(pv);
         }
     }
 }
