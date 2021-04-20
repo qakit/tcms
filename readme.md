@@ -2,15 +2,17 @@
 
 ## Prerequisites
 
-* install EF CLI `dotnet tool install --global dotnet-ef`
+* install Dotnet SDK 5.0+ from [official site](https://dotnet.microsoft.com/download/dotnet/5.0)
 
 ## Setup project
 
 ### Creating DB
 * install PostgreSQL
-* issue `psql -U postgres -c "CREATE USER tcms WITH PASSWORD 'jw8s0F4' CREATEDB;"` to create a new user
-* issue `psql -U postgres -c "GRANT CREATE ON DATABASE tcms TO tcms;"`
-* `dotnet ef database update` to create a database schema
+* issue the following commands one by one:
+** `psql -U postgres -c "CREATE USER tcms WITH PASSWORD 'jw8s0F4' CREATEDB;"`
+** `psql -U postgres -c "CREATE DATABASE tcms;"`
+** `psql -U postgres -c "GRANT CREATE ON DATABASE tcms TO tcms;"`
+* run `dotnet ef database update --project src` to create a database schema
 
 ### Auth
 * register yourself
