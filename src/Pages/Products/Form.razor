@@ -1,4 +1,3 @@
-@using System.Linq
 @using Data.Models
 @using Microsoft.EntityFrameworkCore
 
@@ -19,46 +18,9 @@
             <p>&nbsp;</p>
             <MudText Typo="Typo.h6">Product versions</MudText>
             <MudButton OnClick="@(() => CreateNewVersion())">Create new</MudButton>
-            <MudTable Items="@product.Versions" Dense="true" Striped="true">
-                <HeaderContent>
-                    <MudTh><MudTableSortLabel SortBy="new Func<Product, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
-                    <MudTh>Description</MudTh>
-                    <MudTh>Start</MudTh>
-                    <MudTh>End</MudTh>
-                    <MudTh>IsActive</MudTh>
-                </HeaderContent>
-                <RowTemplate Context="version">
-                    <MudTd DataLabel="Name">@version.Name</MudTd>
-                    <MudTd DataLabel="Description">@version.Description</MudTd>
-                    <MudTd DataLabel="Start Date">@($"{version.StartDate:d}")</MudTd>
-                    <MudTd DataLabel="End Date">@($"{version.EndDate:d}")</MudTd>
-                    <MudTd DataLabel="Is active">@version.IsActive</MudTd>
-                </RowTemplate>
-                <RowEditingTemplate Context="editver">
-                    <MudTd DataLabel="Name">
-                        <MudTextField @bind-Value="@editver.Name" Required />
-                    </MudTd>
-                    <MudTd DataLabel="Description">
-                        <MudTextField @bind-Value="@editver.Description" Required />
-                    </MudTd>
-                    <MudTd DataLabel="Start Date">
-                        <MudDatePicker @bind-Date="@editver.StartDate" Editable="true" />
-                    </MudTd>
-                    <MudTd DataLabel="End Date">
-                        <MudDatePicker Label="End date" @bind-Date="@editver.EndDate" Editable="true" />
-                    </MudTd>
-                    <MudTd DataLabel="Is active">
-                        <MudCheckBox @bind-Checked="@editver.IsActive" />
-                    </MudTd>
-                    <MudTd>
-                        <MudToolBar Dense="true">
-                            <MudButton Color="Color.Inherit" OnClick="@(() => DeleteVersion(@editver.ProductVersionId))">Delete</MudButton>
-                        </MudToolBar>
-                    </MudTd>
-
-                </RowEditingTemplate>
-            </MudTable>
+            <ProductVersionList Items="@product.Versions" OnDeleteVersion="@OnDeleteVersion" />
         </MudCardContent>
+
         <MudCardActions>
             <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">@ButtonText</MudButton>
             <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick=@Back>Back</MudButton>
@@ -90,13 +52,5 @@
     void CreateNewVersion()
     {
         product.Versions.Add(new ProductVersion { Name = "1xx", Description = "New version" });
-    }
-    void DeleteVersion(int productVersionId)
-    {
-        var pv = product.Versions.FirstOrDefault(v => v.ProductVersionId == productVersionId);
-        if (pv != null) {
-            if (OnDeleteVersion != null) OnDeleteVersion(pv);
-            product.Versions.Remove(pv);
-        }
     }
 }
