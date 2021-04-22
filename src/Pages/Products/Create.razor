@@ -1,8 +1,10 @@
 @page "/products/create"
+@using Microsoft.EntityFrameworkCore
 @using Data.Models
 
 @inject NavigationManager uriHelper
-@inject Data.ApplicationDbContext db
+@inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
+
 @inject IJSRuntime js
 
 <h3>Create</h3>
@@ -11,12 +13,12 @@
             OnValidSubmit="@CreateProduct" />
 
 @code {
-    Product product = new Product();
+    Product product = new Product { Versions = new HashSet<ProductVersion>() };
+
     async Task CreateProduct()
     {
+        using var db = dbFactory.CreateDbContext();
         db.Add(product);
-        await js.InvokeVoidAsync("console.log", "product created", product);
-        //await http.PostAsJsonAsync("api/developer", product);
         db.SaveChanges();
         uriHelper.NavigateTo("products");
     }

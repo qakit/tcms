@@ -22,28 +22,6 @@ namespace tcms.Data
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
-
-			DatabaseSeed(modelBuilder);
-		}
-
-		private void DatabaseSeed(ModelBuilder modelBuilder)
-		{
-			modelBuilder.Entity<TestCasePriority>().HasData(
-				new TestCasePriority { TestCasePriorityId = 3, Name = "Low" },
-				new TestCasePriority { TestCasePriorityId = 2, Name = "Medium" },
-				new TestCasePriority { TestCasePriorityId = 1, Name = "High" });
-
-			modelBuilder.Entity<TestCaseStatus>().HasData(
-				new TestCaseStatus { TestCaseStatusId = 3, Name = "Approved", IsApproved = true },
-				new TestCaseStatus { TestCaseStatusId = 1, Name = "Proposed" },
-				new TestCaseStatus { TestCaseStatusId = 2, Name = "RequireChanges" });
-
-			modelBuilder.Entity<TestCaseType>().HasData(
-				new TestCaseType { TestCaseTypeId = 1, Name = "Functional" },
-				new TestCaseType { TestCaseTypeId = 2, Name = "Usability" },
-				new TestCaseType { TestCaseTypeId = 3, Name = "Performance" },
-				new TestCaseType { TestCaseTypeId = 4, Name = "Regression" });
-			
 			//Product
 			modelBuilder.Entity<Product>()
 				.HasMany(p => p.Components)
@@ -95,6 +73,27 @@ namespace tcms.Data
 				.HasMany(tct => tct.TestCases)
 				.WithOne(p => p.Type)
 				.OnDelete(DeleteBehavior.Restrict);
+
+			DatabaseSeed(modelBuilder);
+		}
+
+		private void DatabaseSeed(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<TestCasePriority>().HasData(
+				new TestCasePriority { TestCasePriorityId = 3, Name = "Low" },
+				new TestCasePriority { TestCasePriorityId = 2, Name = "Medium" },
+				new TestCasePriority { TestCasePriorityId = 1, Name = "High" });
+
+			modelBuilder.Entity<TestCaseStatus>().HasData(
+				new TestCaseStatus { TestCaseStatusId = 3, Name = "Approved", IsApproved = true },
+				new TestCaseStatus { TestCaseStatusId = 1, Name = "Proposed" },
+				new TestCaseStatus { TestCaseStatusId = 2, Name = "RequireChanges" });
+
+			modelBuilder.Entity<TestCaseType>().HasData(
+				new TestCaseType { TestCaseTypeId = 1, Name = "Functional" },
+				new TestCaseType { TestCaseTypeId = 2, Name = "Usability" },
+				new TestCaseType { TestCaseTypeId = 3, Name = "Performance" },
+				new TestCaseType { TestCaseTypeId = 4, Name = "Regression" });
 		}
 
 		public override int SaveChanges()

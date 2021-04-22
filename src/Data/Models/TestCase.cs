@@ -9,9 +9,10 @@ namespace tcms.Data.Models
 	{
 		public int TestCaseId { get; set; }
 
-		[Required, StringLength(500)]
+		[Required, StringLength(100)]
 		public string Title { get; set; }
 
+		[Required, StringLength(500)]
 		public string Description { get; set; }
 
 		public double EstimateHr { get; set; }

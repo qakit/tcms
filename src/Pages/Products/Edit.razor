@@ -1,30 +1,43 @@
 @page "/products/edit/{productId:int}"
 @using Microsoft.EntityFrameworkCore
+@using Data
 @using Data.Models
 
 @inject NavigationManager uriHelper
-@inject Data.ApplicationDbContext db
 @inject IJSRuntime js
+@inject IDbContextFactory<ApplicationDbContext> dbFactory
 
-<h3>Edit</h3>
-
-<Form ButtonText="Update" product="product"
-      OnValidSubmit="@EditProduct" />
+<MudText Typo="Typo.h3">Edit</MudText>
+<Form ButtonText="Update" product="product" OnValidSubmit="@EditProduct" OnDeleteVersion="@OnDeleteVersion" />
 
 @code {
     [Parameter] public int productId { get; set; }
     Product product = new Product();
+    ApplicationDbContext _context;
 
     protected async override Task OnParametersSetAsync()
     {
-        product = await db.Products.FirstOrDefaultAsync(p => p.ProductId == productId);
+        _context = dbFactory.CreateDbContext();
+        product = await _context.Products
+            .Include(p => p.Versions)
+            .FirstOrDefaultAsync(p => p.ProductId == productId);
     }
 
     async Task EditProduct()
     {
-        db.Entry(product).State = EntityState.Modified;
-        await db.SaveChangesAsync();
+        _context.Entry(product).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
         await js.InvokeVoidAsync("alert", $"Updated Successfully!");
         uriHelper.NavigateTo("products");
+    }
+
+    void OnDeleteVersion(ProductVersion pv)
+    {
+        _context.Entry(pv).State = EntityState.Deleted;
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
     }
 }

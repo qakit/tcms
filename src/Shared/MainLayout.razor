@@ -1,18 +1,48 @@
 ﻿@inherits LayoutComponentBase
+@using MudBlazor
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<MudThemeProvider />
+<MudDialogProvider/>
+<MudSnackbarProvider/>
 
-    <div class="main">
-        <div class="top-row px-4 auth">
-            <LoginDisplay />
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
+<AuthorizeView>
+    <NotAuthorized>
+        <MudLayout>
+            <MudAppBar Elevation="4" Class="pa-2 mud-theme-primary" Dense="true">
+                <MudAppBarSpacer />
+                <LoginDisplay />
+            </MudAppBar>
+            <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center" Style="height: 100vh;">
+                <MudPaper Elevation="25" Class="pa-8" Style="width:500px;">
+                    @Body
+                </MudPaper>
+            </MudContainer>
+        </MudLayout>
+    </NotAuthorized>
 
-        <div class="content px-4">
-            @Body
-        </div>
-    </div>
-</div>
+    <Authorized>
+        <MudLayout>
+            <MudAppBar Elevation="4" Dense="true">
+                <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit" OnClick="@((e) => DrawerToggle())" Class="ml-3" />
+                <MudAppBarSpacer />
+                <LoginDisplay />
+            </MudAppBar>
+            <MudDrawer @bind-Open="_drawerOpen" Elevation="25" ClipMode="DrawerClipMode.Always">
+                <NavMenu />
+            </MudDrawer>
+            <MudMainContent>
+                <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
+                    @Body
+                </MudContainer>
+            </MudMainContent>
+        </MudLayout>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private bool _drawerOpen = true;
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}

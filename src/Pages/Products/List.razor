@@ -1,66 +1,78 @@
 @page "/products"
 
 @using Microsoft.EntityFrameworkCore
+@using MudBlazor
 @using Data.Models
 
-@inject Data.ApplicationDbContext db
 @inject IJSRuntime js
+@inject Microsoft.AspNetCore.Components.NavigationManager navManager
+@inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
 
-<h3>Products</h3>
-<small>Define products under development.</small>
-<div class="form-group">
-    <a class="btn btn-success" href="products/create"><i class="oi oi-plus"></i> Create New</a>
-</div>
+<MudText class="Typo.h3">Products</MudText>
+<MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Define products list</MudText>
+<MudDivider Class="my-2"/>
+
+<MudButton OnClick="@(() => CreateNew())">Create new</MudButton>
 <br>
 @if (products == null)
 {
-    <text>Loading...</text>
+	<text>Loading...</text>
 }
 else if (products.Count == 0)
 {
-    <text>No Records Found.</text>
+	<text>No Records Found.</text>
 }
 else
 {
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (Product p in products)
-            {
-                <tr>
-                    <td>@p.ProductId</td>
-                    <td>@p.Name</td>
-                    <td>@p.Description</td>
-                    <td>
-                        <a class="btn btn-success" href="products/edit/@p.ProductId">Edit</a>
-                        <button class="btn btn-danger" @onclick="@(() => Delete(p.ProductId))">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+	<MudTable Items="@products" Dense="true" Striped="true">
+		<HeaderContent>
+			<MudTh><MudTableSortLabel SortBy="new Func<Product, object>(x=>x.ProductId)">Id</MudTableSortLabel></MudTh>
+			<MudTh><MudTableSortLabel SortBy="new Func<Product, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+			<MudTh>Description</MudTh>
+			<MudTh>Command</MudTh>
+		</HeaderContent>
+		<RowTemplate>
+			<MudTd DataLabel="Id">@context.ProductId</MudTd>
+			<MudTd DataLabel="Name">@context.Name</MudTd>
+			<MudTd DataLabel="Description">@context.Description</MudTd>
+			<MudTd>
+				<MudToolBar Dense="true">
+					<MudButton Color="Color.Inherit" OnClick="@(() => Edit(@context.ProductId))">Edit</MudButton>
+					<MudButton Color="Color.Inherit" OnClick="@(() => Delete(@context.ProductId))">Delete</MudButton>
+				</MudToolBar>
+			</MudTd>
+		</RowTemplate>
+		<PagerContent>
+			<MudTablePager PageSizeOptions="new int[]{50, 100}" />
+		</PagerContent>
+	</MudTable>
 }
 @code {
-    IList<Product> products { get; set; }
-    protected override async Task OnInitializedAsync()
-    {
-        products = await db.Products.ToListAsync();
-    }
-    async Task Delete(int productId)
-    {
-        var product = products.First(x => x.ProductId == productId);
-        if (await js.InvokeAsync<bool>("confirm", $"Do you want to delete {product.Name}'s ({product.ProductId}) Record?"))
-        {
-            db.Remove(product);
-            await db.SaveChangesAsync();
-            await OnInitializedAsync();
-        }
-    }
+	IList<Product> products { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		using var db = dbFactory.CreateDbContext();
+		products = await db.Products.ToListAsync();
+	}
+
+	async Task Delete(int productId)
+	{
+		using var db = dbFactory.CreateDbContext();
+		var product = products.First(x => x.ProductId == productId);
+		if (await js.InvokeAsync<bool>("confirm", $"Do you want to delete {product.Name}'s ({product.ProductId}) Record?"))
+		{
+			db.Remove(product);
+			await db.SaveChangesAsync();
+			await OnInitializedAsync();
+		}
+	}
+	void Edit(int productId)
+	{
+		navManager.NavigateTo($"products/edit/{productId}");
+	}
+	void CreateNew()
+	{
+		navManager.NavigateTo($"products/create");
+	}
 }

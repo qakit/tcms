@@ -358,10 +358,10 @@ namespace tcms.Data.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
-                    b.Property<DateTime>("EndDate")
+                    b.Property<DateTime?>("EndDate")
                         .HasColumnType("Date");
 
                     b.Property<bool>("IsActive")
@@ -382,12 +382,15 @@ namespace tcms.Data.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("StartDate")
+                    b.Property<DateTime?>("StartDate")
                         .HasColumnType("Date");
 
                     b.HasKey("ProductVersionId");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("Name", "ProductId")
+                        .IsUnique();
 
                     b.ToTable("ProductVersions", "core");
                 });
@@ -410,7 +413,9 @@ namespace tcms.Data.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<double>("EstimateHr")
                         .HasColumnType("double precision");
@@ -433,8 +438,8 @@ namespace tcms.Data.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int?>("TypeTestCaseTypeId")
                         .HasColumnType("integer");
