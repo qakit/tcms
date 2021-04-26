@@ -4,40 +4,46 @@
 @using Data.Models
 
 @inject NavigationManager uriHelper
-@inject IJSRuntime js
+@inject ISnackbar _snackBar
 @inject IDbContextFactory<ApplicationDbContext> dbFactory
 
 <MudText Typo="Typo.h3">Edit</MudText>
 <Form ButtonText="Update" product="product" OnValidSubmit="@EditProduct" OnDeleteVersion="@OnDeleteVersion" />
 
 @code {
-    [Parameter] public int productId { get; set; }
-    Product product = new Product();
-    ApplicationDbContext _context;
+	[Parameter] public int productId { get; set; }
+	Product product = new Product();
+	ApplicationDbContext _context;
 
-    protected async override Task OnParametersSetAsync()
-    {
-        _context = dbFactory.CreateDbContext();
-        product = await _context.Products
-            .Include(p => p.Versions)
-            .FirstOrDefaultAsync(p => p.ProductId == productId);
-    }
+	protected async override Task OnParametersSetAsync()
+	{
+		_context = dbFactory.CreateDbContext();
+		product = await _context.Products
+			.Include(p => p.Versions)
+			.FirstOrDefaultAsync(p => p.ProductId == productId);
+	}
 
-    async Task EditProduct()
-    {
-        _context.Entry(product).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-        await js.InvokeVoidAsync("alert", $"Updated Successfully!");
-        uriHelper.NavigateTo("products");
-    }
+	async Task EditProduct()
+	{
+		_context.Entry(product).State = EntityState.Modified;
+		try {
+			await _context.SaveChangesAsync();
+			_snackBar.Add($"{product.Name} updated successfully", Severity.Success);
+			uriHelper.NavigateTo("products");
+		}
+		catch(DbUpdateException updError)
+		{
+			_snackBar.Add($"Failed to update product: {updError.InnerException.Message}", Severity.Error);
+		}
+	}
 
-    void OnDeleteVersion(ProductVersion pv)
-    {
-        _context.Entry(pv).State = EntityState.Deleted;
-    }
+	void OnDeleteVersion(ProductVersion pv)
+	{
+		_context.Entry(pv).State = EntityState.Deleted;
+	}
 
-    public void Dispose()
-    {
-        _context.Dispose();
-    }
+	public void Dispose()
+	{
+		_context.Dispose();
+	}
 }

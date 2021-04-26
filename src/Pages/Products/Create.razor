@@ -10,7 +10,7 @@
 <h3>Create</h3>
 
 <Form ButtonText="Create product" product="@product"
-            OnValidSubmit="@CreateProduct" />
+            OnValidSubmit="@(() => CreateProduct())" />
 
 @code {
     Product product = new Product { Versions = new HashSet<ProductVersion>() };
@@ -19,7 +19,7 @@
     {
         using var db = dbFactory.CreateDbContext();
         db.Add(product);
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         uriHelper.NavigateTo("products");
     }
 }

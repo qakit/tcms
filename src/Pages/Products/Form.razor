@@ -16,8 +16,6 @@
                 <MudTextField For="@(() => product.Description)" @bind-Value="@product.Description" Required="true" Label="Description" />
             </MudItem>
             <p>&nbsp;</p>
-            <MudText Typo="Typo.h6">Product versions</MudText>
-            <MudButton OnClick="@(() => CreateNewVersion())">Create new</MudButton>
             <ProductVersionList Items="@product.Versions" OnDeleteVersion="@OnDeleteVersion" />
         </MudCardContent>
 
@@ -34,7 +32,7 @@
     [Parameter] public string ButtonText { get; set; } = "Save";
     [Parameter] public EventCallback OnValidSubmit { get; set; }
 
-    [Parameter] public Action<ProductVersion> OnDeleteVersion { get; set; }
+    [Parameter] public Action<ProductVersion> OnDeleteVersion { get; set; } = _ => {};
 
     async Task Back() {
         await js.InvokeVoidAsync("history.back");
@@ -48,9 +46,5 @@
         {
             _snackBar.Add($"Failed to store data: {updError.InnerException.Message}", Severity.Error);
         }
-    }
-    void CreateNewVersion()
-    {
-        product.Versions.Add(new ProductVersion { Name = "1xx", Description = "New version" });
     }
 }
