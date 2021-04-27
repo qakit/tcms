@@ -2,15 +2,17 @@
 
 ## Prerequisites
 
-* install EF CLI `dotnet tool install --global dotnet-ef`
+* install Dotnet SDK 5.0+ from [official site](https://dotnet.microsoft.com/download/dotnet/5.0)
 
 ## Setup project
 
 ### Creating DB
 * install PostgreSQL
-* issue `psql -U postgres -c "CREATE USER tcms WITH PASSWORD 'jw8s0F4' CREATEDB;"` to create a new user
-* issue `psql -U postgres -c "GRANT CREATE ON DATABASE tcms TO tcms;"`
-* `dotnet ef database update` to create a database schema
+* issue the following commands one by one:
+** `psql -U postgres -c "CREATE USER tcms WITH PASSWORD 'jw8s0F4' CREATEDB;"`
+** `psql -U postgres -c "CREATE DATABASE tcms;"`
+** `psql -U postgres -c "GRANT CREATE ON DATABASE tcms TO tcms;"`
+* run `dotnet ef database update --project src` to create a database schema
 
 ### Auth
 * register yourself
@@ -26,6 +28,7 @@
 ** created migration `dotnet ef migrations add Products`
 ** update database `dotnet ef database update`
 1. added simplistic CRUD forms for products (Pages/Products). Using the article (from the refs) but skipped API/controller part, so the form communicates Db directly
+1. changed the db communication to factory/shortlived context and all discovered data issues had gone
 
 
 ## Misc
@@ -37,3 +40,4 @@
 * https://purple.telstra.com/blog/asp-net-core-identity-with-postgresql
 * https://docs.microsoft.com/ru-ru/ef/core/managing-schemas/migrations/?tabs=dotnet-core-cli
 * https://codewithmukesh.com/blog/blazor-crud-with-entity-framework-core/ - creating sample CRUD
+* https://docs.microsoft.com/en-us/aspnet/core/blazor/blazor-server-ef-core?view=aspnetcore-5.0

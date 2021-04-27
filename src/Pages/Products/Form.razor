@@ -3,12 +3,11 @@
 
 @inject IJSRuntime js
 @inject ISnackbar _snackBar
-@inject Data.ApplicationDbContext db
 
 <EditForm Model="@product" OnValidSubmit="@OnSubmitHandler">
     <DataAnnotationsValidator />
 
-    <MudCard>
+    <MudCard Style="padding: 8pt">
         <MudCardContent>
             <MudItem xs="12" md="6">
                 <MudTextField For="@(() => product.Name)" @bind-Value="@product.Name" Required="true" Label="Name" />
@@ -16,7 +15,12 @@
             <MudItem xs="12" md="6">
                 <MudTextField For="@(() => product.Description)" @bind-Value="@product.Description" Required="true" Label="Description" />
             </MudItem>
+            <p>&nbsp;</p>
+            <MudText Typo="Typo.h6">Product versions</MudText>
+            <MudButton OnClick="@(() => CreateNewVersion())">Create new</MudButton>
+            <ProductVersionList Items="@product.Versions" OnDeleteVersion="@OnDeleteVersion" />
         </MudCardContent>
+
         <MudCardActions>
             <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">@ButtonText</MudButton>
             <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick=@Back>Back</MudButton>
@@ -30,6 +34,8 @@
     [Parameter] public string ButtonText { get; set; } = "Save";
     [Parameter] public EventCallback OnValidSubmit { get; set; }
 
+    [Parameter] public Action<ProductVersion> OnDeleteVersion { get; set; }
+
     async Task Back() {
         await js.InvokeVoidAsync("history.back");
     }
@@ -40,8 +46,11 @@
         }
         catch(DbUpdateException updError)
         {
-            db.Entry(product).State = EntityState.Detached; // update the state so that the List form displays correct data
             _snackBar.Add($"Failed to store data: {updError.InnerException.Message}", Severity.Error);
         }
+    }
+    void CreateNewVersion()
+    {
+        product.Versions.Add(new ProductVersion { Name = "1xx", Description = "New version" });
     }
 }
