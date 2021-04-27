@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace tcms.Data.Models
 {
-	[Index(nameof(Name), IsUnique = true)]
+	[Index(nameof(Name), nameof(ProductId), IsUnique = true)]
 	[Table("Components", Schema = "core")]
 	public class Component : BaseEntity
 	{
@@ -17,6 +17,8 @@ namespace tcms.Data.Models
 		[StringLength(500)]
 		public string Description { get; set; }
 
+		[ForeignKey("Product")]
+		public int ProductId { get; set; }
 		public Product Product { get; set; }
 
 		public virtual ICollection<TestCase> TestCases { get; set; }

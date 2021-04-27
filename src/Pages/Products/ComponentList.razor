@@ -1,0 +1,60 @@
+@using System.Linq
+@using Data.Models
+
+@inject IJSRuntime js
+@inject ISnackbar _snackBar
+
+<MudTable Items="@Items" Dense="true" Striped="true">
+	<ToolBarContent>
+		<MudText Typo="Typo.h6">Components</MudText>
+		<MudToolBarSpacer />
+		<MudButton Variant="Variant.Filled" OnClick="@CreateNew">Create New</MudButton>
+		@* <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField> *@
+	</ToolBarContent>
+
+	<HeaderContent>
+		<MudTh><MudTableSortLabel SortBy="new Func<Component, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+		<MudTh><MudTableSortLabel SortBy="new Func<Component, object>(x=>x.Description)">Description</MudTableSortLabel></MudTh>
+		<MudTh></MudTh>
+	</HeaderContent>
+	<RowTemplate Context="comp">
+		<MudTd DataLabel="Name">@comp.Name</MudTd>
+		<MudTd DataLabel="Description">@comp.Description</MudTd>
+		<MudTd>
+			<MudToolBar Dense="true">
+				<MudButton Color="Color.Inherit" OnClick="@(() => Delete(@comp.ComponentId))">Delete</MudButton>
+			</MudToolBar>
+		</MudTd>
+
+	</RowTemplate>
+	<RowEditingTemplate Context="editcomp">
+		<MudTd DataLabel="Name">
+			<MudTextField @bind-Value="@editcomp.Name" Required />
+		</MudTd>
+		<MudTd DataLabel="Description">
+			<MudTextField @bind-Value="@editcomp.Description" Required />
+		</MudTd>
+		<MudTd>
+		</MudTd>
+
+	</RowEditingTemplate>
+</MudTable>
+
+@code {
+	[Parameter] public ICollection<Component> Items { get; set; }
+	[Parameter] public Action<Component> OnDeleteComponent { get; set; }
+
+	void Delete(int componentId)
+	{
+		var comp = Items.FirstOrDefault(v => v.ComponentId == componentId);
+		if (comp != null) {
+			OnDeleteComponent?.Invoke(comp);
+			Items.Remove(comp);
+		}
+	}
+
+	void CreateNew()
+	{
+		Items.Add(new Component { Name = "component", Description = "" });
+	}
+}

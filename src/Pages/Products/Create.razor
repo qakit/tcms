@@ -3,23 +3,54 @@
 @using Data.Models
 
 @inject NavigationManager uriHelper
+@inject ISnackbar _snackBar
 @inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
 
 @inject IJSRuntime js
 
 <h3>Create</h3>
 
-<Form ButtonText="Create product" product="@product"
-            OnValidSubmit="@CreateProduct" />
+<EditForm Model="@product" OnValidSubmit="@CreateProduct">
+	<DataAnnotationsValidator />
+
+	<MudCard Style="padding: 8pt">
+		<MudCardContent>
+			<MudItem xs="12" md="6">
+				<MudTextField For="@(() => product.Name)" @bind-Value="@product.Name" Required="true" Label="Name" />
+			</MudItem>
+			<MudItem xs="12" md="6">
+				<MudTextField For="@(() => product.Description)" @bind-Value="@product.Description" Required="true" Label="Description" />
+			</MudItem>
+		</MudCardContent>
+
+		<MudCardActions>
+			<MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Create product</MudButton>
+			<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick=@Back>Back</MudButton>
+		</MudCardActions>
+	</MudCard>
+</EditForm>
 
 @code {
-    Product product = new Product { Versions = new HashSet<ProductVersion>() };
+	Product product = new Product { Versions = new HashSet<ProductVersion>(), Components = new HashSet<Component>() };
 
-    async Task CreateProduct()
-    {
-        using var db = dbFactory.CreateDbContext();
-        db.Add(product);
-        db.SaveChanges();
-        uriHelper.NavigateTo("products");
+    async Task Back() {
+        await js.InvokeVoidAsync("history.back");
     }
+
+	async Task CreateProduct()
+	{
+		try
+		{
+			using var db = dbFactory.CreateDbContext();
+			db.Add(product);
+			await db.SaveChangesAsync();
+			_snackBar.Add($"{product.Name} created successfully", Severity.Success);
+			uriHelper.NavigateTo("products");
+		}
+		catch(DbUpdateException updError)
+		{
+			_snackBar.Add($"Failed to update product: {updError.InnerException.Message}", Severity.Error);
+		}
+
+	}
 }

@@ -3,41 +3,80 @@
 @using Data
 @using Data.Models
 
-@inject NavigationManager uriHelper
 @inject IJSRuntime js
+@inject ISnackbar _snackBar
+@inject NavigationManager uriHelper
 @inject IDbContextFactory<ApplicationDbContext> dbFactory
 
 <MudText Typo="Typo.h3">Edit</MudText>
-<Form ButtonText="Update" product="product" OnValidSubmit="@EditProduct" OnDeleteVersion="@OnDeleteVersion" />
+<EditForm Model="@product" OnValidSubmit="@(() => ApplyChanges(true))">
+	<DataAnnotationsValidator />
+	<MudItem xs="12" md="6">
+		<MudTextField For="@(() => product.Name)" @bind-Value="@product.Name" Required="true" Label="Name" />
+	</MudItem>
+	<MudItem xs="12" md="6">
+		<MudTextField For="@(() => product.Description)" @bind-Value="@product.Description" Required="true" Label="Description" />
+	</MudItem>
+	<p>&nbsp;</p>
+
+	<MudTabs Elevation="2" Rounded="true">
+		<MudTabPanel Text="Versions">
+			<ProductVersionList Items="@product.Versions" OnDeleteVersion="@OnDeleteVersion" />
+		</MudTabPanel>
+		<MudTabPanel Text="Components">
+			<ComponentList Items="@product.Components" OnDeleteComponent="@OnDeleteComponent" />
+		</MudTabPanel>
+	</MudTabs>
+
+	<MudToolBar>
+		<MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@(() => ApplyChanges(false))">Apply changes</MudButton>
+		<MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Update</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick=@Back>Back</MudButton>
+	</MudToolBar>
+</EditForm>
 
 @code {
-    [Parameter] public int productId { get; set; }
-    Product product = new Product();
-    ApplicationDbContext _context;
+	[Parameter] public int productId { get; set; }
+	Product product = new Product();
+	ApplicationDbContext _context;
 
-    protected async override Task OnParametersSetAsync()
-    {
-        _context = dbFactory.CreateDbContext();
-        product = await _context.Products
-            .Include(p => p.Versions)
-            .FirstOrDefaultAsync(p => p.ProductId == productId);
-    }
+	protected async override Task OnParametersSetAsync()
+	{
+		_context = dbFactory.CreateDbContext();
+		product = await _context.Products
+			.Include(p => p.Versions)
+			.Include(p => p.Components)
+			.FirstOrDefaultAsync(p => p.ProductId == productId);
+	}
 
-    async Task EditProduct()
-    {
-        _context.Entry(product).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-        await js.InvokeVoidAsync("alert", $"Updated Successfully!");
-        uriHelper.NavigateTo("products");
-    }
+	async Task Back() {
+		@* await js.InvokeVoidAsync("history.back"); *@
+	}
+	
+	async Task ApplyChanges(bool navigateAway = false)
+	{
+		_context.Entry(product).State = EntityState.Modified;
+		try {
+			await _context.SaveChangesAsync();
+			_snackBar.Add($"{product.Name} updated successfully", Severity.Success);
+			if (navigateAway) uriHelper.NavigateTo("products");
+		}
+		catch(DbUpdateException updError)
+		{
+			_snackBar.Add($"Failed to store data: {updError.InnerException.Message}", Severity.Error);
+		}
+	}
 
-    void OnDeleteVersion(ProductVersion pv)
-    {
-        _context.Entry(pv).State = EntityState.Deleted;
-    }
-
-    public void Dispose()
-    {
-        _context.Dispose();
-    }
+	void OnDeleteVersion(ProductVersion pv)
+	{
+		_context.Entry(pv).State = EntityState.Deleted;
+	}
+	void OnDeleteComponent(Component comp)
+	{
+		_context.Entry(comp).State = EntityState.Deleted;
+	}
+	public void Dispose()
+	{
+		_context.Dispose();
+	}
 }

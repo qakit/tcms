@@ -5,15 +5,11 @@
 @using Data.Models
 
 @inject IJSRuntime js
+@inject ISnackbar _snackBar
+
 @inject Microsoft.AspNetCore.Components.NavigationManager navManager
 @inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
 
-<MudText class="Typo.h3">Products</MudText>
-<MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Define products list</MudText>
-<MudDivider Class="my-2"/>
-
-<MudButton OnClick="@(() => CreateNew())">Create new</MudButton>
-<br>
 @if (products == null)
 {
 	<text>Loading...</text>
@@ -25,9 +21,15 @@ else if (products.Count == 0)
 else
 {
 	<MudTable Items="@products" Dense="true" Striped="true">
+		<ToolBarContent>
+			<MudText Typo="Typo.h6">Products</MudText>
+			<MudToolBarSpacer />
+			<MudButton Variant="Variant.Filled" OnClick="@(() => CreateNew())">Create New</MudButton>
+			@* <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField> *@
+		</ToolBarContent>
 		<HeaderContent>
 			<MudTh><MudTableSortLabel SortBy="new Func<Product, object>(x=>x.ProductId)">Id</MudTableSortLabel></MudTh>
-			<MudTh><MudTableSortLabel SortBy="new Func<Product, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+			<MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Product, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
 			<MudTh>Description</MudTh>
 			<MudTh>Command</MudTh>
 		</HeaderContent>
@@ -47,8 +49,10 @@ else
 		</PagerContent>
 	</MudTable>
 }
+
 @code {
 	IList<Product> products { get; set; }
+	string searchString { get; set; }
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -60,12 +64,18 @@ else
 	{
 		using var db = dbFactory.CreateDbContext();
 		var product = products.First(x => x.ProductId == productId);
-		if (await js.InvokeAsync<bool>("confirm", $"Do you want to delete {product.Name}'s ({product.ProductId}) Record?"))
-		{
+		if (!await js.InvokeAsync<bool>("confirm", $"Do you want to delete {product.Name}'s ({product.ProductId}) Record?")) return;
+		
+		try {
 			db.Remove(product);
 			await db.SaveChangesAsync();
 			await OnInitializedAsync();
 		}
+		catch(DbUpdateException updError)
+		{
+			_snackBar.Add($"Failed to delete product: {updError.InnerException.Message}", Severity.Error);
+		}
+
 	}
 	void Edit(int productId)
 	{

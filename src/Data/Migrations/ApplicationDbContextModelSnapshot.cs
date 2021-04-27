@@ -292,15 +292,15 @@ namespace tcms.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<int?>("ProductId")
+                    b.Property<int>("ProductId")
                         .HasColumnType("integer");
 
                     b.HasKey("ComponentId");
 
-                    b.HasIndex("Name")
-                        .IsUnique();
-
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("Name", "ProductId")
+                        .IsUnique();
 
                     b.ToTable("Components", "core");
                 });
@@ -722,7 +722,8 @@ namespace tcms.Data.Migrations
                     b.HasOne("tcms.Data.Models.Product", "Product")
                         .WithMany("Components")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.Navigation("Product");
                 });
