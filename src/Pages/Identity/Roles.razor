@@ -1,0 +1,79 @@
+@page "/identity/roles"
+
+@using Microsoft.EntityFrameworkCore
+@using MudBlazor
+@using Microsoft.AspNetCore.Identity
+
+@inject IJSRuntime js
+@inject ISnackbar _snackBar
+@inject RoleManager<IdentityRole> roleManager
+
+@* <HeroTitle Title="@localizer["Roles"]" Description="@localizer["Manage Roles."]" /> *@
+<MudTable Hover="true" Elevation="25" Items="RoleList" Filter="new Func<IdentityRole, bool>(Search)" @bind-role="role">
+	<ToolBarContent>
+		<div class="justify-center mud-text-align-center">
+			@* <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="(()=>InvokeModal())">@localizer["Create"]</MudButton> *@
+			<MudButton Variant="Variant.Filled" OnClick="GetRolesAsync" Color="Color.Secondary">Reload</MudButton>
+		</div>
+
+		<MudToolBarSpacer />
+		<MudTextField @bind-Value="searchString" Placeholder="Search for Roles..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3"></MudTextField>
+	</ToolBarContent>
+	<HeaderContent>
+		<MudTh>Id</MudTh>
+		<MudTh>Role</MudTh>
+		<MudTh Style="text-align:right">Actions</MudTh>
+	</HeaderContent>
+	<RowTemplate>
+		<MudTd DataLabel="Id">@context.Id</MudTd>
+		<MudTd DataLabel="Role">@context.Name</MudTd>
+		<MudTd DataLabel="Actions" Style="text-align:right">
+			<MudMenu Label="Actions" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary">
+				@* <MudMenuItem @onclick="@(()=>ManagePermissions(@context.Id))">Manage Permission</MudMenuItem>
+				<MudMenuItem @onclick="@(()=>InvokeModal(@context.Id))">Edit</MudMenuItem> *@
+				<MudMenuItem @onclick="@(()=>Delete(@context.Id))">Delete</MudMenuItem>
+			</MudMenu>
+		</MudTd>
+	</RowTemplate>
+</MudTable>
+
+@code {
+	public List<IdentityRole> RoleList = new List<IdentityRole>();
+	private IdentityRole role = new IdentityRole();
+	private string searchString = "";
+
+	protected override async Task OnInitializedAsync()
+	{
+		await GetRolesAsync();
+	}
+
+	private async Task GetRolesAsync()
+	{
+		RoleList = await roleManager.Roles.ToListAsync();
+	}
+
+	private bool Search(IdentityRole role)
+	{
+		if (string.IsNullOrWhiteSpace(searchString)) return true;
+		if (role.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private async Task Delete(string id)
+	{
+		var role = await roleManager.FindByIdAsync(id);
+		if (role == null || !await js.InvokeAsync<bool>("confirm", $"Do you want to delete ({role.Name}) Role?")) return;
+
+		try {
+			await roleManager.DeleteAsync(role);
+			await OnInitializedAsync();
+		}
+		catch(DbUpdateException updError)
+		{
+			_snackBar.Add($"Failed to delete role: {updError.InnerException.Message}", Severity.Error);
+		}
+	}
+}

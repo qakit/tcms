@@ -75,12 +75,13 @@ else
 		{
 			_snackBar.Add($"Failed to delete product: {updError.InnerException.Message}", Severity.Error);
 		}
-
 	}
+
 	void Edit(int productId)
 	{
 		navManager.NavigateTo($"products/edit/{productId}");
 	}
+
 	void CreateNew()
 	{
 		navManager.NavigateTo($"products/create");
