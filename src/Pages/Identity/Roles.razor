@@ -1,36 +1,35 @@
 @page "/identity/roles"
 
 @using Microsoft.EntityFrameworkCore
-@using MudBlazor
 @using Microsoft.AspNetCore.Identity
 
+@using MudBlazor
+
 @inject IJSRuntime js
-@inject ISnackbar _snackBar
 @inject RoleManager<IdentityRole> roleManager
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Roles> localizer
 
 @* <HeroTitle Title="@localizer["Roles"]" Description="@localizer["Manage Roles."]" /> *@
-<MudTable Hover="true" Elevation="25" Items="RoleList" Filter="new Func<IdentityRole, bool>(Search)" @bind-role="role">
+<MudTable Hover="true" Elevation="25" Items="RoleList" Filter="new Func<IdentityRole, bool>(Search)">
 	<ToolBarContent>
 		<div class="justify-center mud-text-align-center">
-			@* <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="(()=>InvokeModal())">@localizer["Create"]</MudButton> *@
-			<MudButton Variant="Variant.Filled" OnClick="GetRolesAsync" Color="Color.Secondary">Reload</MudButton>
+			<MudButton Variant="Variant.Filled" OnClick="(()=>InvokeModal())">@localizer["Create"]</MudButton>
+			<MudButton Variant="Variant.Filled" OnClick="GetRolesAsync">@localizer["Reload"]</MudButton>
 		</div>
 
 		<MudToolBarSpacer />
 		<MudTextField @bind-Value="searchString" Placeholder="Search for Roles..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3"></MudTextField>
 	</ToolBarContent>
 	<HeaderContent>
-		<MudTh>Id</MudTh>
 		<MudTh>Role</MudTh>
 		<MudTh Style="text-align:right">Actions</MudTh>
 	</HeaderContent>
 	<RowTemplate>
-		<MudTd DataLabel="Id">@context.Id</MudTd>
 		<MudTd DataLabel="Role">@context.Name</MudTd>
 		<MudTd DataLabel="Actions" Style="text-align:right">
-			<MudMenu Label="Actions" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary">
-				@* <MudMenuItem @onclick="@(()=>ManagePermissions(@context.Id))">Manage Permission</MudMenuItem>
-				<MudMenuItem @onclick="@(()=>InvokeModal(@context.Id))">Edit</MudMenuItem> *@
+			<MudMenu Label="..." Variant="Variant.Filled" DisableElevation="true" IconColor="Color.Secondary">
+				@* <MudMenuItem @onclick="@(()=>ManagePermissions(@context.Id))">Manage Permission</MudMenuItem> *@
+				<MudMenuItem @onclick="@(()=>InvokeModal(@context.Id))">Edit</MudMenuItem>
 				<MudMenuItem @onclick="@(()=>Delete(@context.Id))">Delete</MudMenuItem>
 			</MudMenu>
 		</MudTd>
@@ -39,7 +38,6 @@
 
 @code {
 	public List<IdentityRole> RoleList = new List<IdentityRole>();
-	private IdentityRole role = new IdentityRole();
 	private string searchString = "";
 
 	protected override async Task OnInitializedAsync()
@@ -62,9 +60,32 @@
 		return false;
 	}
 
+	private async Task InvokeModal(string id = null)
+	{
+		var parameters = new DialogParameters();
+		if (id != null)
+		{
+			var role = RoleList.FirstOrDefault(c => c.Id == id);
+			parameters.Add("Id", role.Id);
+			parameters.Add("Name", role.Name);
+		}
+		var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+		var dialog = _dialogService.Show<RoleModal>("Modal", parameters, options);
+		var result = await dialog.Result;
+		if (!result.Cancelled)
+		{
+			await GetRolesAsync();
+		}
+	}
+
 	private async Task Delete(string id)
 	{
 		var role = await roleManager.FindByIdAsync(id);
+		if (role.Name == "Administrator")
+		{
+			_snackBar.Add("Cannot delete built-in role", Severity.Error);
+			return;
+		}
 		if (role == null || !await js.InvokeAsync<bool>("confirm", $"Do you want to delete ({role.Name}) Role?")) return;
 
 		try {
