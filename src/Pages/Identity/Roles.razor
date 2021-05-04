@@ -6,8 +6,9 @@
 @using MudBlazor
 
 @inject IJSRuntime js
-@inject RoleManager<IdentityRole> roleManager
+@inject RoleManager<IdentityRole> _roleManager
 @inject Microsoft.Extensions.Localization.IStringLocalizer<Roles> localizer
+@inject Microsoft.AspNetCore.Components.NavigationManager _navigationManager
 
 @* <HeroTitle Title="@localizer["Roles"]" Description="@localizer["Manage Roles."]" /> *@
 <MudTable Hover="true" Elevation="25" Items="RoleList" Filter="new Func<IdentityRole, bool>(Search)">
@@ -27,8 +28,8 @@
 	<RowTemplate>
 		<MudTd DataLabel="Role">@context.Name</MudTd>
 		<MudTd DataLabel="Actions" Style="text-align:right">
-			<MudMenu Label="..." Variant="Variant.Filled" DisableElevation="true" IconColor="Color.Secondary">
-				@* <MudMenuItem @onclick="@(()=>ManagePermissions(@context.Id))">Manage Permission</MudMenuItem> *@
+			<MudMenu Label="..." Variant="Variant.Filled" DisableElevation="true" IconColor="Color.Secondary" Direction="Direction.Right">
+				<MudMenuItem @onclick="@(()=>ManagePermissions(@context.Id))">Manage Permissions</MudMenuItem>
 				<MudMenuItem @onclick="@(()=>InvokeModal(@context.Id))">Edit</MudMenuItem>
 				<MudMenuItem @onclick="@(()=>Delete(@context.Id))">Delete</MudMenuItem>
 			</MudMenu>
@@ -47,7 +48,7 @@
 
 	private async Task GetRolesAsync()
 	{
-		RoleList = await roleManager.Roles.ToListAsync();
+		RoleList = await _roleManager.Roles.ToListAsync();
 	}
 
 	private bool Search(IdentityRole role)
@@ -80,7 +81,7 @@
 
 	private async Task Delete(string id)
 	{
-		var role = await roleManager.FindByIdAsync(id);
+		var role = await _roleManager.FindByIdAsync(id);
 		if (role.Name == "Administrator")
 		{
 			_snackBar.Add("Cannot delete built-in role", Severity.Error);
@@ -89,12 +90,17 @@
 		if (role == null || !await js.InvokeAsync<bool>("confirm", $"Do you want to delete ({role.Name}) Role?")) return;
 
 		try {
-			await roleManager.DeleteAsync(role);
+			await _roleManager.DeleteAsync(role);
 			await OnInitializedAsync();
 		}
 		catch(DbUpdateException updError)
 		{
 			_snackBar.Add($"Failed to delete role: {updError.InnerException.Message}", Severity.Error);
 		}
+	}
+
+	private void ManagePermissions(string roleId)
+	{
+		_navigationManager.NavigateTo($"/identity/roles/{roleId}/permissions");
 	}
 }
