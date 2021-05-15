@@ -1,6 +1,7 @@
 @page "/identity/roles/{Id}/permissions"
 @inject Microsoft.Extensions.Localization.IStringLocalizer<RolePermissions> localizer
-@* <HeroTitle Title="Manage Permission" Description="@Description" /> *@
+<MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-2">Manage permissions</MudText>
+<MudText Color="Color.Surface" Class="mb-4">@Description</MudText>
 
 @if (RoleClaims == null)
 {

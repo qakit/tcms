@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using MudBlazor;
+using tcms.Constants;
 
 namespace tcms.Pages.Identity
 {
@@ -42,7 +43,7 @@ namespace tcms.Pages.Identity
 				else
 				{
 					var existingRole = await roleManager.FindByIdAsync(Id);
-					if (existingRole.Name == "Administrator")
+					if (existingRole.Name == UserRoleConstants.AdministratorRole)
 					{
 						_snackBar.Add("Cannot update builtin role", Severity.Error);
 						return;

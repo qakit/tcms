@@ -1,5 +1,6 @@
 @page "/identity/roles"
 
+@using Constants
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Identity
 
@@ -82,7 +83,7 @@
 	private async Task Delete(string id)
 	{
 		var role = await _roleManager.FindByIdAsync(id);
-		if (role.Name == "Administrator")
+		if (role.Name == UserRoleConstants.AdministratorRole)
 		{
 			_snackBar.Add("Cannot delete built-in role", Severity.Error);
 			return;

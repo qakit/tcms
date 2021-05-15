@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using MudBlazor;
+using tcms.Constants;
 
 namespace tcms.Pages.Identity
 {
@@ -25,19 +27,26 @@ namespace tcms.Pages.Identity
 		public string Id { get; set; }
 
 		[Parameter]
-		public string Title { get; set; }
-
-		[Parameter]
 		public string Description { get; set; }
 
 		public List<RoleClaim> RoleClaims { get; set; }
 
-		private readonly string[] AllPermissions = new string [] {
-			"Edit.User",
-			"Edit.Product",
-			"Create.Product",
-			"Create.Testplan"
-		};
+		private readonly IReadOnlyCollection<string> AllPermissions = 
+			new List<string>(
+				Enumerable.Empty<string>()
+					.Concat(GetPermissions(typeof(Permissions.Admin)))
+					.Concat(GetPermissions(typeof(Permissions.TestCases)))
+					.Concat(GetPermissions(typeof(Permissions.TestPlan)))
+			).AsReadOnly();
+		
+		public static IEnumerable<string> GetPermissions(Type policy)
+		{
+			FieldInfo[] fields = policy.GetFields(BindingFlags.Static | BindingFlags.Public);
+			foreach (FieldInfo fi in fields)
+			{
+				yield return fi.GetValue(null).ToString();
+			}
+		}
 
 		protected override async Task OnInitializedAsync()
 		{
@@ -51,7 +60,7 @@ namespace tcms.Pages.Identity
 				).ToList();
 				if (RoleClaims.Any())
 				{
-					Description = $"Manage {role.Id} {role.Name}'s Permissions";
+					Description = $"Manage {role.Name}'s Permissions";
 				}
 			}
 		}
