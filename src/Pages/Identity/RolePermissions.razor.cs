@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -11,7 +9,7 @@ using tcms.Constants;
 
 namespace tcms.Pages.Identity
 {
-	public partial class RolePermissions
+    public partial class RolePermissions
 	{
 		public class RoleClaim
 		{
@@ -31,23 +29,6 @@ namespace tcms.Pages.Identity
 
 		public List<RoleClaim> RoleClaims { get; set; }
 
-		private readonly IReadOnlyCollection<string> AllPermissions = 
-			new List<string>(
-				Enumerable.Empty<string>()
-					.Concat(GetPermissions(typeof(Permissions.Admin)))
-					.Concat(GetPermissions(typeof(Permissions.TestCases)))
-					.Concat(GetPermissions(typeof(Permissions.TestPlan)))
-			).AsReadOnly();
-		
-		public static IEnumerable<string> GetPermissions(Type policy)
-		{
-			FieldInfo[] fields = policy.GetFields(BindingFlags.Static | BindingFlags.Public);
-			foreach (FieldInfo fi in fields)
-			{
-				yield return fi.GetValue(null).ToString();
-			}
-		}
-
 		protected override async Task OnInitializedAsync()
 		{
 			var roleId = Id;
@@ -55,7 +36,7 @@ namespace tcms.Pages.Identity
 			var claims = await _roleManager.GetClaimsAsync(role);
 			if (claims != null)
 			{
-				RoleClaims = (from p in AllPermissions
+				RoleClaims = (from p in Services.PermissionsHelper.AllPermissions
 					select new RoleClaim { Type = "Permission", Value = p, Selected = claims.Any(c => c.Value == p) }
 				).ToList();
 				if (RoleClaims.Any())
@@ -71,13 +52,13 @@ namespace tcms.Pages.Identity
 
 			var removeClaims = (
 				from rc in RoleClaims join claim in claims on rc.Value equals claim.Value
-				where !rc.Selected && claim.Type == "Permission"
+				where !rc.Selected && claim.Type == ApplicationClaimTypes.Permission
 				select claim).ToList();
 			var newClaims = (
 				from rc in RoleClaims
 				where rc.Selected
-				where !claims.Any(claim => claim.Value == rc.Value && claim.Type == "Permission")
-				select new Claim("Permission", rc.Value)).ToList();
+				where !claims.Any(claim => claim.Value == rc.Value && claim.Type == ApplicationClaimTypes.Permission)
+				select new Claim(ApplicationClaimTypes.Permission, rc.Value)).ToList();
 
 			var failures = new List<IdentityResult>();
 			int updateCount = 0;

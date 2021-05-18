@@ -52,8 +52,8 @@ namespace tcms.Data
 			{
 				var newUser = new IdentityUser
 				{
-					UserName = template.name,
-					Email = $"${template.name}@tcms.dataworks.co",
+					UserName = $"{template.name}@tcms",
+					Email = $"{template.name}@tcms.dataworks.co",
 					EmailConfirmed = true,
 					PhoneNumberConfirmed = true,
 				};

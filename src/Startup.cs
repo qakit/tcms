@@ -1,6 +1,9 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -8,11 +11,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MudBlazor.Services;
 using tcms.Areas.Identity;
+using tcms.Constants;
 using tcms.Data;
 
 namespace tcms
 {
-	public class Startup
+    public class Startup
 	{
 		public Startup(IConfiguration configuration)
 		{
@@ -35,24 +39,36 @@ namespace tcms
 			services.AddScoped<ApplicationDbContext>(p => 
 				p.GetRequiredService<IDbContextFactory<ApplicationDbContext>>()
 				.CreateDbContext());
-			// services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-			//     .AddEntityFrameworkStores<ApplicationDbContext>();
 			services.AddIdentity<IdentityUser, IdentityRole>(config =>
 				{
 					config.SignIn.RequireConfirmedEmail = true; //optional
 				})
 				.AddEntityFrameworkStores<ApplicationDbContext>()
-				.AddDefaultTokenProviders();
+				.AddDefaultTokenProviders()
+				.AddDefaultUI()
+				;
 
 			services.AddLocalization(options =>
 			{
 				options.ResourcesPath = "Resources";
 			});
 
+			services.AddAuthorization(options => {
+				foreach(var p in Services.PermissionsHelper.AllPermissions)
+				{
+					// create policies named after respective permission name. Policy required claim to be granted
+					options.AddPolicy(p, policy => policy.RequireClaim(ApplicationClaimTypes.Permission, p));
+				}
+			});
+			services.AddSingleton<IClaimsTransformation, ClaimsTransformer>();
+
 			services.AddRazorPages();
 			services.AddServerSideBlazor();
 			services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 			services.AddDatabaseDeveloperPageExceptionFilter();
+			services.AddHttpContextAccessor();
+			services.AddTransient<ClaimsPrincipal>(s =>
+    			s.GetService<IHttpContextAccessor>().HttpContext.User);
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
