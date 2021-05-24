@@ -11,6 +11,8 @@
 @inject Microsoft.Extensions.Localization.IStringLocalizer<Roles> localizer
 @inject Microsoft.AspNetCore.Components.NavigationManager _navigationManager
 
+@attribute [Authorize(Policy = Constants.Permissions.Admin.ManageUsers)]
+
 @* <HeroTitle Title="@localizer["Roles"]" Description="@localizer["Manage Roles."]" /> *@
 <MudTable Hover="true" Elevation="25" Items="RoleList" Filter="new Func<IdentityRole, bool>(Search)">
 	<ToolBarContent>
@@ -29,11 +31,14 @@
 	<RowTemplate>
 		<MudTd DataLabel="Role">@context.Name</MudTd>
 		<MudTd DataLabel="Actions" Style="text-align:right">
-			<MudMenu Label="..." Variant="Variant.Filled" DisableElevation="true" IconColor="Color.Secondary" Direction="Direction.Right">
-				<MudMenuItem @onclick="@(()=>ManagePermissions(@context.Id))">Manage Permissions</MudMenuItem>
-				<MudMenuItem @onclick="@(()=>InvokeModal(@context.Id))">Edit</MudMenuItem>
-				<MudMenuItem @onclick="@(()=>Delete(@context.Id))">Delete</MudMenuItem>
-			</MudMenu>
+			@if(@context.Name != Constants.UserRoleConstants.AdministratorRole)
+			{
+				<MudMenu Label="..." Variant="Variant.Filled" DisableElevation="true" IconColor="Color.Secondary" Direction="Direction.Right">
+					<MudMenuItem @onclick="@(()=>ManagePermissions(@context.Id))">Manage Permissions</MudMenuItem>
+					<MudMenuItem @onclick="@(()=>InvokeModal(@context.Id))">Edit</MudMenuItem>
+					<MudMenuItem @onclick="@(()=>Delete(@context.Id))">Delete</MudMenuItem>
+				</MudMenu>
+			}
 		</MudTd>
 	</RowTemplate>
 </MudTable>

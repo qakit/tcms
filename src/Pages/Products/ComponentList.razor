@@ -3,6 +3,7 @@
 
 @inject IJSRuntime js
 
+@attribute [Authorize(Policy = Constants.Permissions.Admin.ManageProducts)]
 <MudTable Items="@Items" Dense="true" Striped="true">
 	<ToolBarContent>
 		<MudToolBarSpacer />

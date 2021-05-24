@@ -43,16 +43,16 @@ namespace tcms.Data
 		private async Task InitUsers()
 		{
 			var usersToCreate = new[] {
-				new { name = "admin", role = UserRoleConstants.AdministratorRole},
-				new { name = "testman", role = UserRoleConstants.TestManagerRole},
-				new { name = "tester", role = UserRoleConstants.TesterRole},
+				new { name = UserRoleConstants.Administrator, role = UserRoleConstants.AdministratorRole},
+				new { name = UserRoleConstants.TestManager, role = UserRoleConstants.TestManagerRole},
+				new { name = UserRoleConstants.Tester, role = UserRoleConstants.TesterRole},
 			};
 
 			foreach(var template in usersToCreate)
 			{
 				var newUser = new IdentityUser
 				{
-					UserName = $"{template.name}@tcms",
+					UserName = template.name,
 					Email = $"{template.name}@tcms.dataworks.co",
 					EmailConfirmed = true,
 					PhoneNumberConfirmed = true,

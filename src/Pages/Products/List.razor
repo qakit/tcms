@@ -9,6 +9,8 @@
 @inject Microsoft.AspNetCore.Components.NavigationManager navManager
 @inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
 
+@attribute [Authorize(Policy = Constants.Permissions.Admin.ManageProducts)]
+
 @if (products == null)
 {
 	<text>Loading...</text>

@@ -1,22 +1,27 @@
 ﻿@using System.Security.Claims
 @using Constants
 
-@inject ClaimsPrincipal AuthenticationStateProviderUser
+@inject ClaimsPrincipal User
 
 <MudNavMenu>
     <MudText Typo="Typo.h6" Class="px-4">TCMS</MudText>
     <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Test cases management</MudText>
     <MudDivider Class="my-2"/>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Home">Home</MudNavLink>
-    <MudNavLink Href="products" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Home">Products</MudNavLink>
-
-    <MudListSubheader Class="mt-2 mb-n2">
-        Administrator
-    </MudListSubheader>
-
-    @if (_authorizationService.AuthorizeAsync(AuthenticationStateProviderUser, Permissions.Admin.ManageUsers).Result.Succeeded)
+    @if (_authorizationService.AuthorizeAsync(User, Permissions.Admin.ManageProducts).Result.Succeeded)
+    {
+        <MudNavLink Href="products" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Home">Products</MudNavLink>
+    }
+    @if (_authorizationService.AuthorizeAsync(User, "AnyAdminPrivilege").Result.Succeeded)
+    {
+        <MudListSubheader Class="mt-2 mb-n2">
+            Administrator
+        </MudListSubheader>
+    }
+    @if (_authorizationService.AuthorizeAsync(User, Permissions.Admin.ManageUsers).Result.Succeeded)
     {
         <MudNavLink Href="/identity/roles" Icon="@Icons.Material.Outlined.Person">Roles</MudNavLink>
+        <MudNavLink Href="/identity/users" Icon="@Icons.Material.Outlined.Face">Users</MudNavLink>
     }
 
 </MudNavMenu>

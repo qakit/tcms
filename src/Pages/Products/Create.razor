@@ -6,6 +6,7 @@
 @inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
 
 @inject IJSRuntime js
+@attribute [Authorize(Policy = Constants.Permissions.Admin.ManageProducts)]
 
 <h3>Create</h3>
 

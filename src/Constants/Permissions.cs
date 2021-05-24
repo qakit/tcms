@@ -22,6 +22,7 @@ namespace tcms.Constants
 		{
 			public const string ManageProducts = "ManageProducts";
 			public const string ManageUsers = "ManageUsers";
+			public const string ViewRoles = "ViewRoles";
 		}
 	}
 }
