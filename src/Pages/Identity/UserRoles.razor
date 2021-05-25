@@ -1,0 +1,98 @@
+@page "/identity/users/{Id}/roles"
+
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Identity
+@using tcms.Constants
+
+@inject Microsoft.Extensions.Localization.IStringLocalizer<UserRoles> localizer
+@inject ClaimsPrincipal CurrentUser
+@inject UserManager<IdentityUser> _userManager
+@inject RoleManager<IdentityRole> _roleManager
+@inject Microsoft.AspNetCore.Components.NavigationManager _navigationManager
+
+@attribute [Authorize(Policy = Constants.Permissions.Admin.ViewRoles)]
+
+<MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-2">@Title</MudText>
+<MudText Color="Color.Surface" Class="mb-4">@Description</MudText>
+
+<MudTable Hover="true" Elevation="25" Items="UserRolesList">
+    <ToolBarContent>
+        <div class="justify-center mud-text-align-center">
+            @if ((_authorizationService.AuthorizeAsync(CurrentUser, Permissions.Admin.ManageUsers)).Result.Succeeded)
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="SaveAsync" ButtonType="ButtonType.Submit">@localizer["Update User Roles"]</MudButton>
+            }
+        </div>
+        <MudToolBarSpacer />
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>@localizer["Role Name"]</MudTh>
+        <MudTh>@localizer["Status"]</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id">@context.RoleName</MudTd>
+        <MudTd DataLabel="Role"><MudCheckBox @bind-Checked="@context.Selected" Color="Color.Secondary"></MudCheckBox></MudTd>
+    </RowTemplate>
+    <PagerContent>
+    </PagerContent>
+</MudTable>
+
+@code {
+    public string Title { get; set; } = "";
+    public string Description { get; set; } = "";
+
+    public class UserRoleModel
+    {
+        public string RoleName { get; set; }
+        public bool Selected { get; set; }
+    }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public List<UserRoleModel> UserRolesList { get; set; } = new List<UserRoleModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var allRoles = _roleManager.Roles.Select(role => role.Name).ToList();
+        var userId = Id;
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user != null)
+        {
+            Title = $"{user.UserName} Roles";
+            Description = $"Manage {user.UserName}'s roles";
+            var userRoles = await _userManager.GetRolesAsync(user);
+            UserRolesList = (
+                from roleName in allRoles
+                let selected = userRoles.Contains(roleName)
+                select new UserRoleModel { RoleName = roleName, Selected = selected }
+            ).ToList();
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        var userId = Id;
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            _snackBar.Add("User not found (deleted?), reload the form", Severity.Error);
+            return;
+        }
+        if (user.UserName == UserRoleConstants.Administrator)
+        {
+			_snackBar.Add("Cannot change roles for built-in user", Severity.Error);
+			return;
+        }
+
+        var userRoles = await _userManager.GetRolesAsync(user);
+        var changeList = (from userRole in UserRolesList
+            where userRole.Selected != userRoles.Contains(userRole.RoleName)
+            select userRole).ToList();
+
+        await _userManager.RemoveFromRolesAsync(user, from c in changeList where !c.Selected select c.RoleName);
+        await _userManager.AddToRolesAsync(user, from c in changeList where c.Selected select c.RoleName);
+        _snackBar.Add($"{changeList.Count} roles updated", Severity.Success);
+        _navigationManager.NavigateTo("/identity/users");
+    }
+}

@@ -5,10 +5,11 @@
 @using Data.Models
 
 @inject IJSRuntime js
-@inject ISnackbar _snackBar
 
 @inject Microsoft.AspNetCore.Components.NavigationManager navManager
 @inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
+
+@attribute [Authorize(Policy = Constants.Permissions.Admin.ManageProducts)]
 
 @if (products == null)
 {
@@ -20,12 +21,11 @@ else if (products.Count == 0)
 }
 else
 {
-	<MudTable Items="@products" Dense="true" Striped="true">
+	<MudTable Items="@products" Dense="true" Striped="true" Filter="new Func<Product, bool>(Search)">
 		<ToolBarContent>
-			<MudText Typo="Typo.h6">Products</MudText>
-			<MudToolBarSpacer />
 			<MudButton Variant="Variant.Filled" OnClick="@(() => CreateNew())">Create New</MudButton>
-			@* <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField> *@
+			<MudToolBarSpacer />
+			<MudTextField @bind-Value="searchString" Placeholder="Search for products" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3"></MudTextField>
 		</ToolBarContent>
 		<HeaderContent>
 			<MudTh><MudTableSortLabel SortBy="new Func<Product, object>(x=>x.ProductId)">Id</MudTableSortLabel></MudTh>
@@ -60,6 +60,14 @@ else
 		products = await db.Products.ToListAsync();
 	}
 
+	private bool Search(Product product)
+	{
+		if (string.IsNullOrWhiteSpace(searchString)) return true;
+		return product.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+			|| product.Description.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+		;
+	}
+
 	async Task Delete(int productId)
 	{
 		using var db = dbFactory.CreateDbContext();
@@ -75,12 +83,13 @@ else
 		{
 			_snackBar.Add($"Failed to delete product: {updError.InnerException.Message}", Severity.Error);
 		}
-
 	}
+
 	void Edit(int productId)
 	{
 		navManager.NavigateTo($"products/edit/{productId}");
 	}
+
 	void CreateNew()
 	{
 		navManager.NavigateTo($"products/create");

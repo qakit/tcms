@@ -4,9 +4,10 @@
 @using Data.Models
 
 @inject IJSRuntime js
-@inject ISnackbar _snackBar
 @inject NavigationManager uriHelper
 @inject IDbContextFactory<ApplicationDbContext> dbFactory
+
+@attribute [Authorize(Policy = Constants.Permissions.Admin.ManageProducts)]
 
 <MudText Typo="Typo.h3">Edit</MudText>
 <EditForm Model="@product" OnValidSubmit="@(() => ApplyChanges(true))">
@@ -73,7 +74,7 @@
 	}
 
 	async Task Back() {
-		@* await js.InvokeVoidAsync("history.back"); *@
+		await js.InvokeVoidAsync("history.back");
 	}
 	
 	async Task ApplyChanges(bool navigateAway = false)
