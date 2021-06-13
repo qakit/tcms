@@ -25,7 +25,7 @@ else
 		<ToolBarContent>
 			<MudButton Variant="Variant.Filled" OnClick="@(() => CreateNew())">Create New</MudButton>
 			<MudToolBarSpacer />
-			<MudTextField @bind-Value="searchString" Placeholder="Search for products" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3"></MudTextField>
+			<MudTextField @bind-Value="@searchString" Placeholder="Search for products" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3"></MudTextField>
 		</ToolBarContent>
 		<HeaderContent>
 			<MudTh><MudTableSortLabel SortBy="new Func<Product, object>(x=>x.ProductId)">Id</MudTableSortLabel></MudTh>

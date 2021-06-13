@@ -1,0 +1,100 @@
+@page "/testcases"
+
+@using Microsoft.EntityFrameworkCore
+@using MudBlazor
+@using Data.Models
+
+@inject IJSRuntime js
+
+@inject Microsoft.AspNetCore.Components.NavigationManager navManager
+@inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
+
+@* @attribute [Authorize(Policy = Constants.Permissions.TestCases.Edit)] *@
+
+@if (testcases == null)
+{
+	<text>Loading...</text>
+}
+else if (testcases.Count == 0)
+{
+	<text>No Records Found.</text>
+	<br>
+	<text>It's about time to ...</text>
+	<MudButton OnClick="@(() => CreateNew())">Create New</MudButton>
+}
+else
+{
+	<MudTable Items="@testcases" Dense="true" Striped="true" Filter="new Func<TestCase, bool>(Search)">
+		<ToolBarContent>
+			<MudButton Variant="Variant.Filled" OnClick="@(() => CreateNew())">Create New</MudButton>
+			<MudToolBarSpacer />
+			<MudTextField @bind-Value="@searchString" Placeholder="Search for test cases" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3"></MudTextField>
+		</ToolBarContent>
+		<HeaderContent>
+			<MudTh><MudTableSortLabel SortBy="new Func<TestCase, object>(x=>x.TestCaseId)" InitialDirection="SortDirection.Ascending">Id</MudTableSortLabel></MudTh>
+			<MudTh><MudTableSortLabel SortBy="new Func<TestCase, object>(x=>x.Title)">Title</MudTableSortLabel></MudTh>
+			<MudTh><MudTableSortLabel SortBy="new Func<TestCase, object>(x=>x.Description)">Description</MudTableSortLabel></MudTh>
+			<MudTh>Command</MudTh>
+		</HeaderContent>
+		<RowTemplate>
+			<MudTd DataLabel="Id">@context.TestCaseId</MudTd>
+			<MudTd DataLabel="Title">@context.Title</MudTd>
+			<MudTd DataLabel="Description">@context.Description</MudTd>
+			<MudTd>
+				<MudToolBar Dense="true">
+					<MudButton Color="Color.Inherit" OnClick="@(() => Edit(@context.TestCaseId))">Edit</MudButton>
+					<MudButton Color="Color.Inherit" OnClick="@(() => Delete(@context.TestCaseId))">Delete</MudButton>
+				</MudToolBar>
+			</MudTd>
+		</RowTemplate>
+		<PagerContent>
+			<MudTablePager PageSizeOptions="new int[]{50, 100}" />
+		</PagerContent>
+	</MudTable>
+}
+
+@code {
+	IList<TestCase> testcases { get; set; }
+	string searchString { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		using var db = dbFactory.CreateDbContext();
+		testcases = await db.TestCases.ToListAsync();
+	}
+
+	private bool Search(TestCase product)
+	{
+		if (string.IsNullOrWhiteSpace(searchString)) return true;
+		return product.Title.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+			|| product.Description.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+		;
+	}
+
+	async Task Delete(int testCaseId)
+	{
+		using var db = dbFactory.CreateDbContext();
+		var testcase = testcases.First(x => x.TestCaseId == testCaseId);
+		if (!await js.InvokeAsync<bool>("confirm", $"Do you want to delete {testcase.Title}'s Record?")) return;
+		
+		try {
+			db.Remove(testcase);
+			await db.SaveChangesAsync();
+			await OnInitializedAsync();
+		}
+		catch(DbUpdateException updError)
+		{
+			_snackBar.Add($"Failed to delete test case: {updError.InnerException.Message}", Severity.Error);
+		}
+	}
+
+	void Edit(int productId)
+	{
+		navManager.NavigateTo($"testcases/edit/{productId}");
+	}
+
+	void CreateNew()
+	{
+		navManager.NavigateTo($"testcases/create");
+	}
+}

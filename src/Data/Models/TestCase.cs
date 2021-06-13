@@ -15,18 +15,23 @@ namespace tcms.Data.Models
 		[Required, StringLength(500)]
 		public string Description { get; set; }
 
+		// [Range(0, 99)]
 		public double EstimateHr { get; set; }
 
 		public virtual ICollection<TestCaseStep> Steps { get; set; }
 
 		[Required]
+		public int ComponentId { get; set; }
 		public Component Component { get; set; }
 
 		[Required]
+		public int StatusId { get; set; }
 		public TestCaseStatus Status { get; set; }
 
+		public int TypeId { get; set; }
 		public TestCaseType Type { get; set; }
 
+		public int PriorityId { get; set; }
 		public TestCasePriority Priority { get; set; }
 
 		public bool IsAutomated { get; set; } = false;

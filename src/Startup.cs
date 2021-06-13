@@ -59,7 +59,8 @@ namespace tcms
 					// create policies named after respective permission name. Policy required claim to be granted
 					options.AddPolicy(p, policy => policy.RequireClaim(ApplicationClaimTypes.Permission, p));
 				}
-				options.AddPolicy("AnyAdminPrivilege", policy => policy.RequireClaim(ApplicationClaimTypes.Permission, Permissions.Admin.ManageUsers, Permissions.Admin.ManageProducts));
+				options.AddPolicy(PolicyNames.AnyAdminPrivilege, policy =>
+					policy.RequireClaim(ApplicationClaimTypes.Permission, Permissions.Admin.ManageUsers, Permissions.Admin.ManageProducts));
 			});
 			services.AddSingleton<IClaimsTransformation, ClaimsTransformer>();
 
