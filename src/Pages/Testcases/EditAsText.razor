@@ -1,7 +1,10 @@
-@page "/testcases/createfromtext"
+@page "/testcases/editastext/{productId:int}"
 
+@using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.EntityFrameworkCore
+@using Markdig
 @using Data.Models
+@using System.Text
 @using tcms.Domain
 
 @inject NavigationManager uriHelper
@@ -10,14 +13,8 @@
 
 @attribute [Authorize(Policy = Constants.Permissions.TestCases.Edit)]
 
-<h3>Create</h3>
+<h3>Edit test cases</h3>
 <MudGrid>
-	<MudItem xs="7">
-		<MudSelect T="int" @bind-Value="@productId" Label="Product" Variant="Variant.Text">
-			@foreach (var p in products) { <MudSelectItem Value="@p.ProductId">@p.Name</MudSelectItem> }
-		</MudSelect>
-	</MudItem>
-
     <MudItem xs="6">
         <MudTextField T="string" Variant="Variant.Filled"
 			@bind-Value="@wikiText"
@@ -33,7 +30,7 @@
 	<MudCard>
 		<MudCardActions>
 			<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick=@OnValidate>Validate</MudButton>
-			<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick=@OnCreate>Create</MudButton>
+			<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick=@OnSave>Save</MudButton>
 			<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick=@Back>Back</MudButton>
 		</MudCardActions>
 	</MudCard>
@@ -41,28 +38,77 @@
 
 @code {
 
+	public string itemIdsStr {get; set; }
+
 	string wikiText = "";
 	string renderedWiki => Markdig.Markdown.ToHtml(wikiText);
 
-	List<Product> products = new ();
+	Product product;
 	List<TestCaseType> caseTypes = new ();
 	List<TestCasePriority> casePriorities = new ();
 
-	int productId;
+	[Parameter]
+	public int productId {get; set;}
 
 	protected override async Task OnInitializedAsync()
 	{
 		using var db = dbFactory.CreateDbContext();
-		products = await db.Products.Include(p => p.Components).ToListAsync();
 		caseTypes = await db.TestCaseTypes.ToListAsync();
 		casePriorities = await db.TestCasePriorities.ToListAsync();
+	}
 
-		var product = products.OrderBy(p => p.ProductId).First();
-		productId = product.ProductId;
+	protected override async Task OnParametersSetAsync()
+	{
+		using var db = dbFactory.CreateDbContext();
+		product = await db.Products.Where(p => p.ProductId == productId).Include(p => p.Components).FirstAsync();
 
-		// TODO choose default one
+		var uri = uriHelper.ToAbsoluteUri(uriHelper.Uri);
+		if(!QueryHelpers.ParseQuery(uri.Query).TryGetValue("Items", out var itemIdsStr))
+		{
+			Console.WriteLine("Items are not passed");
+		}
+		var itemIds = (
+			from str in itemIdsStr
+			from id in str.Split(',')
+			select int.Parse(id)
+		).ToList();
+		var itemIdsDict = itemIds.Select((id, idx) => new {id, idx}).ToDictionary(i => i.id, i => i.idx);
+
+		var wikiBuilder = new StringBuilder();
+		wikiBuilder.AppendLine($"# {product.Name}");
+
+		string lastComponentName = null;
+		foreach(var tc in from testcase in db.TestCases
+			where itemIds.Contains(testcase.TestCaseId)
+			@* TODO orderby itemIdsDict[testcase.TestCaseId] *@
+			select testcase)
+		{
+			var component = product.Components.First(c => c.ComponentId == tc.ComponentId);
+			if(component != null && component.Name != lastComponentName)
+			{
+				wikiBuilder.AppendLine($"## {component.Name}");
+				lastComponentName = component.Name;
+			}
+			wikiBuilder.AppendLine();
+			// TODO fix title (add testcase marker and id)
+			wikiBuilder.AppendLine($"### TestCase: {tc.Title} {{id={tc.TestCaseId}}}");
+			if(!string.IsNullOrEmpty(tc.Text))
+			{
+				wikiBuilder.AppendLine(tc.Text);
+				wikiBuilder.AppendLine();
+			}
+			// TODO add attributes
+		}
+
+		wikiText = wikiBuilder.ToString();
+
+		await base.OnParametersSetAsync();
+	}
+
+	string MakeNewTestCase()
+	{
 		var defaultComponent = product.Components.OrderBy(c => c.ComponentId).First();
-		wikiText = $@"# {defaultComponent.Name}
+		return $@"# {defaultComponent.Name}
 ## TestCase: test case title
 This scenario verifies proper initialization of the designer web component....
 
@@ -75,6 +121,7 @@ This scenario verifies proper initialization of the designer web component....
 1. step 2
 ";
 	}
+	
 
 	void OnValidate()
 	{
@@ -107,8 +154,6 @@ This scenario verifies proper initialization of the designer web component....
 			result.Errors.Add("No testcase declaration found");
 			return result;
 		}
-		var product = products.First(p => p.ProductId == productId);
-
 		bool eqstr(string s1, string s2) => StringComparer.InvariantCultureIgnoreCase.Equals(s1, s2);
 
 		foreach(var tc in parseResult)
@@ -147,7 +192,7 @@ This scenario verifies proper initialization of the designer web component....
 		return result;
 	}
 
-	async Task OnCreate()
+	async Task OnSave()
 	{
 		var validationResult = Validate(wikiText);
 		if (validationResult.Errors.Count > 0)

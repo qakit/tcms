@@ -25,23 +25,22 @@ else if (testcases.Count == 0)
 }
 else
 {
-	<MudTable Items="@testcases" Dense="true" Striped="true" Filter="new Func<TestCase, bool>(Search)">
+	<MudTable @ref=table Items="@testcases" Dense="true" Striped="true" Filter="new Func<TestCase, bool>(Search)">
 		<ToolBarContent>
 			<MudButton Variant="Variant.Filled" OnClick="@(() => CreateNew())">Create New</MudButton>
 			<MudButton Variant="Variant.Filled" OnClick="@(() => CreateFromText())">Create New (text)</MudButton>
+			<MudButton Variant="Variant.Filled" OnClick="@(() => EditAll())">Edit cases (text)</MudButton>
 			<MudToolBarSpacer />
 			<MudTextField @bind-Value="@searchString" Placeholder="Search for test cases" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3"></MudTextField>
 		</ToolBarContent>
 		<HeaderContent>
 			<MudTh><MudTableSortLabel SortBy="new Func<TestCase, object>(x=>x.TestCaseId)" InitialDirection="SortDirection.Ascending">Id</MudTableSortLabel></MudTh>
 			<MudTh><MudTableSortLabel SortBy="new Func<TestCase, object>(x=>x.Title)">Title</MudTableSortLabel></MudTh>
-			<MudTh><MudTableSortLabel SortBy="new Func<TestCase, object>(x=>x.Description)">Description</MudTableSortLabel></MudTh>
 			<MudTh>Command</MudTh>
 		</HeaderContent>
 		<RowTemplate>
 			<MudTd DataLabel="Id">@context.TestCaseId</MudTd>
 			<MudTd DataLabel="Title">@context.Title</MudTd>
-			<MudTd DataLabel="Description">@context.Description</MudTd>
 			<MudTd>
 				<MudToolBar Dense="true">
 					<MudButton Color="Color.Inherit" OnClick="@(() => Edit(@context.TestCaseId))">Edit</MudButton>
@@ -56,6 +55,7 @@ else
 }
 
 @code {
+	MudTable<TestCase> table;
 	IList<TestCase> testcases { get; set; }
 	string searchString { get; set; }
 
@@ -69,7 +69,7 @@ else
 	{
 		if (string.IsNullOrWhiteSpace(searchString)) return true;
 		return product.Title.Contains(searchString, StringComparison.OrdinalIgnoreCase)
-			|| product.Description.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+			@* || product.Text.Contains(searchString, StringComparison.OrdinalIgnoreCase) *@
 		;
 	}
 
@@ -88,6 +88,14 @@ else
 		{
 			_snackBar.Add($"Failed to delete test case: {updError.InnerException.Message}", Severity.Error);
 		}
+	}
+
+	void EditAll()
+	{
+		var itemIds = table.FilteredItems.Select(tc => tc.TestCaseId.ToString()).ToArray();
+		var itemIdsStr = string.Join(',', itemIds);
+		// TODO productId must be specified upfront
+		navManager.NavigateTo($"testcases/editastext/{1}?Items={itemIdsStr}");
 	}
 
 	void Edit(int productId)
