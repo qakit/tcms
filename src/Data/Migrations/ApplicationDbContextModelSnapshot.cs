@@ -432,6 +432,11 @@ namespace tcms.Data.Migrations
                     b.Property<int>("StatusId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -447,6 +452,8 @@ namespace tcms.Data.Migrations
                     b.HasIndex("PriorityId");
 
                     b.HasIndex("StatusId");
+
+                    b.HasIndex("Title");
 
                     b.HasIndex("TypeId");
 
@@ -636,21 +643,26 @@ namespace tcms.Data.Migrations
                         new
                         {
                             TestCaseTypeId = 1,
-                            Name = "Functional"
+                            Name = "Other"
                         },
                         new
                         {
                             TestCaseTypeId = 2,
-                            Name = "Usability"
+                            Name = "Functional"
                         },
                         new
                         {
                             TestCaseTypeId = 3,
-                            Name = "Performance"
+                            Name = "Usability"
                         },
                         new
                         {
                             TestCaseTypeId = 4,
+                            Name = "Performance"
+                        },
+                        new
+                        {
+                            TestCaseTypeId = 5,
                             Name = "Regression"
                         });
                 });

@@ -101,8 +101,6 @@ namespace tcms.Data
 				new TestCaseType { TestCaseTypeId = 3, Name = "Usability" },
 				new TestCaseType { TestCaseTypeId = 4, Name = "Performance" },
 				new TestCaseType { TestCaseTypeId = 5, Name = "Regression" });
-			modelBuilder.Entity<Component>().HasData(
-				new Component { ComponentId = 1, Name = "Other/unspecified" });
 		}
 
 		public override int SaveChanges()

@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace tcms.Data.Models
 {
 	[Table("TestCases", Schema = "testcases")]
+	[Index(nameof(Title))]
 	public class TestCase : BaseEntity
 	{
 		public int TestCaseId { get; set; }
@@ -14,6 +16,9 @@ namespace tcms.Data.Models
 
 		[Required, StringLength(500)]
 		public string Description { get; set; }
+
+		[Required, StringLength(2000)]
+		public string Text { get; set; }
 
 		// [Range(0, 99)]
 		public double EstimateHr { get; set; }
