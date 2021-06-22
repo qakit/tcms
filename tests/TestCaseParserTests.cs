@@ -33,14 +33,24 @@ The blank surface is shown
 			var result = results[0];
 			Assert.That(result.Title, Is.EqualTo(@"Displays the blank report after ""New"" command"));
 			
-			StringAssert.StartsWith("## TestCase:", result.Text);
+			StringAssert.StartsWith("This scenario verifies", result.Text);
 			StringAssert.EndsWith("blank surface is shown", result.Text);
 
-			Assert.That(result.ComponentPath, Is.EqualTo("Designer"));
+			Assert.That(result.Project, Is.EqualTo("Designer"));
+			Assert.That(result.ComponentPath, Is.EqualTo(""));
 			Assert.That(result.Type, Is.EqualTo("Functional"));
 			Assert.That(result.Priority, Is.EqualTo("High"));
 			Assert.That(result.EstimateHr, Is.EqualTo(0.0));
 			Assert.That(result.Automated, Is.True);
+		}
+
+		[Test]
+		public void ParseTestCaseId()
+		{
+			var results = TestCaseWikiParser.Parse(@"### TestCase: t {id=1233}");
+			Assert.That(results, Has.Count.EqualTo(1));
+			Assert.That(results[0].Title, Is.EqualTo("t"));
+			Assert.That(results[0].Id, Is.EqualTo("1233"));
 		}
 
 		[Test]
@@ -55,7 +65,8 @@ The blank surface is shown
 ");
 
 			Assert.That(results, Has.Count.EqualTo(1));
-			Assert.That(results[0].ComponentPath, Is.EqualTo("Designer/Surface"));
+			Assert.That(results[0].Project, Is.EqualTo("Designer"));
+			Assert.That(results[0].ComponentPath, Is.EqualTo("Surface"));
 		}
 
 		[Test]
@@ -70,7 +81,8 @@ The blank surface is shown
 ");
 
 			Assert.That(results, Has.Count.EqualTo(1));
-			Assert.That(results[0].ComponentPath, Is.EqualTo("Designer"));
+			Assert.That(results[0].Project, Is.EqualTo("Designer"));
+			Assert.That(results[0].ComponentPath, Is.EqualTo(""));
 		}
 
 		[Test]
@@ -86,7 +98,8 @@ The blank surface is shown
 ");
 
 			Assert.That(results, Has.Count.EqualTo(1));
-			Assert.That(results[0].ComponentPath, Is.EqualTo("Designer/Surface"));
+			Assert.That(results[0].Project, Is.EqualTo("Designer"));
+			Assert.That(results[0].ComponentPath, Is.EqualTo("Surface"));
 		}
 
 		[Test]
@@ -103,8 +116,10 @@ The blank surface is shown
 ");
 
 			Assert.That(results, Has.Count.EqualTo(2));
-			Assert.That(results[0].ComponentPath, Is.EqualTo("Designer/Surface/Grid"));
-			Assert.That(results[1].ComponentPath, Is.EqualTo("Designer/Surface"));
+			Assert.That(results[0].Project, Is.EqualTo("Designer"));
+			Assert.That(results[0].ComponentPath, Is.EqualTo("Surface/Grid"));
+			Assert.That(results[1].Project, Is.EqualTo("Designer"));
+			Assert.That(results[1].ComponentPath, Is.EqualTo("Surface"));
 		}
 
 		[Test]
@@ -122,9 +137,11 @@ The blank surface is shown
 ");
 
 			Assert.That(results, Has.Count.EqualTo(2));
-			Assert.That(results[0].ComponentPath, Is.EqualTo("Designer/Surface"));
+			Assert.That(results[0].Project, Is.EqualTo("Designer"));
+			Assert.That(results[0].ComponentPath, Is.EqualTo("Surface"));
 			Assert.That(results[0].Priority, Is.EqualTo("low"));
-			Assert.That(results[1].ComponentPath, Is.EqualTo("Designer/Properties"));
+			Assert.That(results[1].Project, Is.EqualTo("Designer"));
+			Assert.That(results[1].ComponentPath, Is.EqualTo("Properties"));
 			Assert.That(results[1].Priority, Is.EqualTo("high"));
 		}
 	}

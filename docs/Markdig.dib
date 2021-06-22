@@ -161,7 +161,33 @@ foreach(var a in testCaseAttributes)
 
 using System.Text;
 
-using Markdig;
-using Markdig.Syntax;
-using Markdig.Syntax.Inlines;
-var result = Markdown.Parse(sampleText);
+
+var breadcrumbs = new[] { "one", "two", "3", "4" };
+var startBlockLevel = 2;
+var projectName = breadcrumbs.FirstOrDefault() ?? "";
+var componentPath = string.Join('/', breadcrumbs.Take(startBlockLevel).Skip(1).Where(b => !string.IsNullOrWhiteSpace(b)).ToArray());
+
+Console.WriteLine(projectName);
+Console.WriteLine(componentPath);
+
+#!csharp
+
+using System.Text.RegularExpressions;
+
+var r = new Regex(@"{(\w+)=([^}]+)}\s*");
+var teststr = "title goes here {id=12354} and continues here {class=normal tt}.";
+
+var remStart = 0;
+var remainder = new StringBuilder();
+var result = r.Matches(teststr);
+foreach(Match m in result)
+{
+    remainder.Append(teststr.Substring(remStart, m.Index - remStart));
+    remStart = m.Index + m.Length;
+
+    Console.WriteLine(m.ToString());
+    Console.WriteLine($"  {m.Groups[1].Value}:{m.Groups[2].Value}");
+}
+remainder.Append(teststr.Substring(remStart));
+
+Console.WriteLine($"remainder: '{remainder}'");

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
@@ -14,6 +15,7 @@ namespace tcms.Domain
 		public string Text { get; set; }
 		public string Title { get; set; }
 
+		public string Project { get; set; }
 		public string ComponentPath { get; set; }
 		public float? EstimateHr { get; set; }
 		public bool Automated { get; set; }
@@ -41,20 +43,25 @@ namespace tcms.Domain
 
 			void writeTestCase(int endPosition)
 			{
-				var start = startBlock?.Span.Start ?? 0;
+				var start = startBlock?.Span.End + 1 ?? 0;
 				var caseText = endPosition > start ? text.Substring(start, endPosition - start) : text.Substring(start);
 
-				var headingTitle = getHeadingText(startBlock).Substring(TestCaseMarker.Length).Trim();
+				var headingText = getHeadingText(startBlock).Substring(TestCaseMarker.Length);
+				var (headingTitle, titleAttrs) = extractAttributes(headingText);
+
 				var attributes = readAttributes(testCaseAttributes);
 				string tryGetAttr(string name) => attributes.TryGetValue(name, out string v) ? v : null;
 				float? tryGetAttrNum(string name) =>
 					attributes.TryGetValue(name, out string v) && float.TryParse(v, out float result) ? result : null;
 
-				var componentPath = string.Join('/', breadcrumbs.Take(startBlock.Level).Where(b => !string.IsNullOrWhiteSpace(b)).ToArray());
+				var projectName = breadcrumbs.FirstOrDefault() ?? "";
+				var componentPath = string.Join('/', breadcrumbs.Take(startBlock.Level - 1).Skip(1).Where(b => !string.IsNullOrWhiteSpace(b)).ToArray());
 
 				result.Add(new () {
+					Id = titleAttrs.TryGetValue("id", out var id) ? id : null,
 					Text = caseText.Trim(),
-					Title = headingTitle,
+					Title = headingTitle.Trim(),
+					Project = projectName,
 					ComponentPath = componentPath,
 					Type = tryGetAttr("type"),
 					Priority = tryGetAttr("priority"),
@@ -79,8 +86,8 @@ namespace tcms.Domain
 					{
 						if (h.Level < breadcrumbs.Length)
 						{
-							breadcrumbs[h.Level] = headingTitle;
-							for(var i = h.Level + 1; i < breadcrumbs.Length; i++) breadcrumbs[i] = null;
+							breadcrumbs[h.Level - 1] = headingTitle;
+							for(var i = h.Level; i < breadcrumbs.Length; i++) breadcrumbs[i] = null;
 						}
 
 						if (headingTitle.StartsWith(TestCaseMarker, StringComparison.InvariantCultureIgnoreCase))
@@ -152,6 +159,24 @@ namespace tcms.Domain
 					collectAttributeDefinitions(item, result);
 				}
 			}
+		}
+
+		private static readonly Regex attributesRegex = new Regex(@"{(\w+)=([^}]+)}\s*");
+
+		private static (string, IDictionary<string, string>) extractAttributes(string data)
+		{
+			Dictionary<string, string> attrs = new (StringComparer.InvariantCultureIgnoreCase);
+			var remStart = 0;
+			var remainder = new StringBuilder();
+			var result = attributesRegex.Matches(data);
+			foreach(Match m in result)
+			{
+				remainder.Append(data.Substring(remStart, m.Index - remStart));
+				remStart = m.Index + m.Length;
+				attrs.Add(m.Groups[1].Value, m.Groups[2].Value);
+			}
+			remainder.Append(data.Substring(remStart));
+			return (remainder.ToString(), attrs);
 		}
 
 	}

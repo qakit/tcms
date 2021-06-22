@@ -44,8 +44,7 @@
 	string renderedWiki => Markdig.Markdown.ToHtml(wikiText);
 
 	Product product;
-	List<TestCaseType> caseTypes = new ();
-	List<TestCasePriority> casePriorities = new ();
+	ValidationContext validationContext = ValidationContext.Empty;
 
 	[Parameter]
 	public int productId {get; set;}
@@ -53,14 +52,12 @@
 	protected override async Task OnInitializedAsync()
 	{
 		using var db = dbFactory.CreateDbContext();
-		caseTypes = await db.TestCaseTypes.ToListAsync();
-		casePriorities = await db.TestCasePriorities.ToListAsync();
+		validationContext = await ValidationContext.CreateAsync(db);
 	}
 
 	protected override async Task OnParametersSetAsync()
 	{
-		using var db = dbFactory.CreateDbContext();
-		product = await db.Products.Where(p => p.ProductId == productId).Include(p => p.Components).FirstAsync();
+		product = validationContext.Products.First(p => p.ProductId == productId);
 
 		var uri = uriHelper.ToAbsoluteUri(uriHelper.Uri);
 		if(!QueryHelpers.ParseQuery(uri.Query).TryGetValue("Items", out var itemIdsStr))
@@ -78,6 +75,7 @@
 		wikiBuilder.AppendLine($"# {product.Name}");
 
 		string lastComponentName = null;
+		using var db = dbFactory.CreateDbContext();
 		foreach(var tc in from testcase in db.TestCases
 			where itemIds.Contains(testcase.TestCaseId)
 			@* TODO orderby itemIdsDict[testcase.TestCaseId] *@
@@ -125,7 +123,7 @@ This scenario verifies proper initialization of the designer web component....
 
 	void OnValidate()
 	{
-		var validationResult = Validate(wikiText);
+		var validationResult = Validate(validationContext, wikiText);
 
 		validationResult.Errors.ForEach(e => _snackBar.Add(e, Severity.Error));
 		validationResult.Warnings.ForEach(w => _snackBar.Add(w, Severity.Warning));
@@ -137,6 +135,27 @@ This scenario verifies proper initialization of the designer web component....
 		_snackBar.Add($"{validationResult.TestCases.Count} test cases were found", Severity.Info);
 	}
 
+	class ValidationContext
+	{
+		public List<Product> Products { get; init; } = new ();
+		public List<TestCaseType> CaseTypes { get; init; } = new ();
+		public List<TestCasePriority> CasePriorities { get; init; } = new ();
+
+		private ValidationContext()
+		{}
+
+		public static ValidationContext Empty { get; } = new ValidationContext();
+		public static async Task<ValidationContext> CreateAsync(Data.ApplicationDbContext db)
+		{
+			return new ValidationContext
+			{
+				Products = await db.Products.Include(p => p.Components).ToListAsync(),
+				CaseTypes = await db.TestCaseTypes.ToListAsync(),
+				CasePriorities = await db.TestCasePriorities.ToListAsync()
+			};
+		}
+	}
+
 	class ValidationResult
 	{
 		public List<TestCase> TestCases { get; } = new List<TestCase>();
@@ -144,7 +163,7 @@ This scenario verifies proper initialization of the designer web component....
 		public List<string> Warnings { get; } = new List<string>();
 	}
 
-	ValidationResult Validate(string wiki)
+	private static ValidationResult Validate(ValidationContext context, string wiki)
 	{
 		var result = new ValidationResult();
 
@@ -158,14 +177,21 @@ This scenario verifies proper initialization of the designer web component....
 
 		foreach(var tc in parseResult)
 		{
+			var product = context.Products.FirstOrDefault(p => eqstr(p.Name, tc.Project));
+			if (product == null)
+			{
+				result.Errors.Add($"Failed to find project/product '{tc.Project}'");
+				continue;
+			}
+
 			var component = product.Components.FirstOrDefault(c => eqstr(c.Name, tc.ComponentPath));
 			if (component == null)
 			{
 				result.Errors.Add($"Failed to find component '{tc.ComponentPath}'");
 				continue;
 			}
-			var typeId = caseTypes.FirstOrDefault(t => eqstr(t.Name, tc.Type))?.TestCaseTypeId;
-			var priorityId = casePriorities.FirstOrDefault(t => eqstr(t.Name, tc.Priority))?.TestCasePriorityId;
+			var typeId = context.CaseTypes.FirstOrDefault(t => eqstr(t.Name, tc.Type ?? "other"))?.TestCaseTypeId;
+			var priorityId = context.CasePriorities.FirstOrDefault(t => eqstr(t.Name, tc.Priority ?? "medium"))?.TestCasePriorityId;
 
 			if(!typeId.HasValue)
 			{
@@ -174,8 +200,8 @@ This scenario verifies proper initialization of the designer web component....
 			}
 			if(!priorityId.HasValue)
 			{
-				result.Warnings.Add($"Failed to find priority '{tc.Priority}', using \"normal\"");
-				priorityId = 2; // normal
+				result.Warnings.Add($"Failed to find priority '{tc.Priority}', using \"medium\"");
+				priorityId = 2; // medium
 			}
 
 			result.TestCases.Add(new TestCase() {
@@ -194,7 +220,7 @@ This scenario verifies proper initialization of the designer web component....
 
 	async Task OnSave()
 	{
-		var validationResult = Validate(wikiText);
+		var validationResult = Validate(validationContext, wikiText);
 		if (validationResult.Errors.Count > 0)
 		{
 			validationResult.Errors.ForEach(e => _snackBar.Add(e, Severity.Error));
