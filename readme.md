@@ -14,7 +14,16 @@
 ** `psql -U postgres -c "GRANT CREATE ON DATABASE tcms TO tcms;"`
 * run `dotnet ef database update --project src` to create a database schema
 
-### Auth
+### Auth (builtin logins and register your own)
+
+You have two options: use predefined user or create your own secure one.
+There three buildin logins (all share the same 'Pwd)12345' password):
+* admin@tcms
+* testman@tcms
+* tester@tcms
+
+Or register your own user
+
 * register yourself
 * issue the `psql -U postgres -c "UPDATE public.\"AspNetUsers\" SET \"EmailConfirmed\" = true;" tcms` to "confirm" yourself
 

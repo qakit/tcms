@@ -4,9 +4,10 @@
 @using Data.Models
 
 @inject IJSRuntime js
-@inject ISnackbar _snackBar
 @inject NavigationManager uriHelper
 @inject IDbContextFactory<ApplicationDbContext> dbFactory
+
+@attribute [Authorize(Policy = Constants.Permissions.Admin.ManageProducts)]
 
 <MudText Typo="Typo.h3">Edit</MudText>
 <EditForm Model="@product" OnValidSubmit="@(() => ApplyChanges(true))">
@@ -19,14 +20,34 @@
 	</MudItem>
 	<p>&nbsp;</p>
 
-	<MudTabs Elevation="2" Rounded="true">
-		<MudTabPanel Text="Versions">
-			<ProductVersionList Items="@product.Versions" OnDeleteVersion="@OnDeleteVersion" />
-		</MudTabPanel>
-		<MudTabPanel Text="Components">
-			<ComponentList Items="@product.Components" OnDeleteComponent="@OnDeleteComponent" />
-		</MudTabPanel>
-	</MudTabs>
+	<MudExpansionPanels>
+		<MudExpansionPanel HideIcon="true" @bind-IsExpanded="isVersionsOpen" Style="@expansionBackColor">
+			<TitleContent>
+				<div class="d-flex">
+					<MudText Class="mt-1">Product Versions</MudText>
+					<MudBadge Content="@product.Versions?.Count" Color="Color.Primary" Overlap="true" Class="d-flex ml-auto">
+						<MudIcon Icon="@Icons.Material.Filled.Restore" Color="Color.Default" />
+					</MudBadge>
+				</div>
+			</TitleContent>
+			<ChildContent>
+				<ProductVersionList Items="@product.Versions" OnDeleteVersion="@OnDeleteVersion" />
+			</ChildContent>
+		</MudExpansionPanel>
+		<MudExpansionPanel HideIcon="true" Style="@expansionBackColor">
+			<TitleContent>
+				<div class="d-flex">
+					<MudText Class="mt-1">Components</MudText>
+					<MudBadge Content="@product.Components?.Count" Color="Color.Primary" Overlap="true" Class="d-flex ml-auto">
+						<MudIcon Icon="@Icons.Material.Filled.ViewList" Color="Color.Default" />
+					</MudBadge>
+				</div>
+			</TitleContent>
+			<ChildContent>
+				<ComponentList Items="@product.Components" OnDeleteComponent="@OnDeleteComponent" />
+			</ChildContent>
+		</MudExpansionPanel>
+	</MudExpansionPanels>
 
 	<MudToolBar>
 		<MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@(() => ApplyChanges(false))">Apply changes</MudButton>
@@ -40,6 +61,9 @@
 	Product product = new Product();
 	ApplicationDbContext _context;
 
+	bool isVersionsOpen = true;
+	string expansionBackColor = $"background-color:{Colors.Grey.Lighten4};";
+
 	protected async override Task OnParametersSetAsync()
 	{
 		_context = dbFactory.CreateDbContext();
@@ -50,7 +74,7 @@
 	}
 
 	async Task Back() {
-		@* await js.InvokeVoidAsync("history.back"); *@
+		await js.InvokeVoidAsync("history.back");
 	}
 	
 	async Task ApplyChanges(bool navigateAway = false)

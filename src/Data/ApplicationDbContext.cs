@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 using tcms.Data.Models;
 
 namespace tcms.Data
@@ -102,13 +104,19 @@ namespace tcms.Data
 			return base.SaveChanges();
 		}
 
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+			AddTimestamps();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
 		private void AddTimestamps()
 		{
 			ChangeTracker.DetectChanges();
 
 			var entities = ChangeTracker.Entries().Where(x => x.Entity is BaseEntity && (x.State == EntityState.Added || x.State == EntityState.Modified));
 
-			var userId = httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+			var userId = httpContextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier).Value;
 
 			var currentUsername = !string.IsNullOrEmpty(userId)
 				? userId

@@ -2,11 +2,9 @@
 @using Data.Models
 
 @inject IJSRuntime js
-@inject ISnackbar _snackBar
 
 <MudTable Items="@Items" Dense="true" Striped="true">
 	<ToolBarContent>
-		<MudText Typo="Typo.h6">Product versions</MudText>
 		<MudToolBarSpacer />
 		<MudButton Variant="Variant.Filled" OnClick="@CreateNewVersion">Create New</MudButton>
 		@* <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField> *@
