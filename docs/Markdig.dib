@@ -190,4 +190,4 @@ foreach(Match m in result)
 }
 remainder.Append(teststr.Substring(remStart));
 
-Console.WriteLine($"remainder: '{remainder}'");
+Console.WriteLine($"remainder: '{remainder}'.");

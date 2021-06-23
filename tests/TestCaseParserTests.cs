@@ -36,6 +36,7 @@ The blank surface is shown
 			StringAssert.StartsWith("This scenario verifies", result.Text);
 			StringAssert.EndsWith("blank surface is shown", result.Text);
 
+			Assert.That(result.Id, Is.Null);
 			Assert.That(result.Project, Is.EqualTo("Designer"));
 			Assert.That(result.ComponentPath, Is.EqualTo(""));
 			Assert.That(result.Type, Is.EqualTo("Functional"));

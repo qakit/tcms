@@ -42,6 +42,7 @@
 
 	string wikiText = "";
 	string renderedWiki => Markdig.Markdown.ToHtml(wikiText);
+	List<int> renderedItemIds = new();
 
 	Product product;
 	ValidationContext validationContext = ValidationContext.Empty;
@@ -62,25 +63,42 @@
 		var uri = uriHelper.ToAbsoluteUri(uriHelper.Uri);
 		if(!QueryHelpers.ParseQuery(uri.Query).TryGetValue("Items", out var itemIdsStr))
 		{
-			Console.WriteLine("Items are not passed");
+			wikiText = MakeNewTestCase();
+			renderedItemIds = new();
 		}
-		var itemIds = (
-			from str in itemIdsStr
-			from id in str.Split(',')
-			select int.Parse(id)
-		).ToList();
+		else
+		{
+			var (wiki, actualIds) = await MakeWikiOfTestCases(
+				from str in itemIdsStr
+					from id in str.Split(',')
+					select int.Parse(id)
+			);
+			wikiText = wiki;
+			renderedItemIds = actualIds;
+		}
+
+		await base.OnParametersSetAsync();
+	}
+
+	async Task<(string,List<int>)> MakeWikiOfTestCases(IEnumerable<int> testCaseIds)
+	{
+		var itemIds = testCaseIds.ToList();
 		var itemIdsDict = itemIds.Select((id, idx) => new {id, idx}).ToDictionary(i => i.id, i => i.idx);
 
 		var wikiBuilder = new StringBuilder();
 		wikiBuilder.AppendLine($"# {product.Name}");
+		var actualIds = new List<int>();
 
 		string lastComponentName = null;
 		using var db = dbFactory.CreateDbContext();
-		foreach(var tc in from testcase in db.TestCases
+		var testcases = await (from testcase in db.TestCases
 			where itemIds.Contains(testcase.TestCaseId)
-			@* TODO orderby itemIdsDict[testcase.TestCaseId] *@
-			select testcase)
+			select testcase).ToListAsync();
+
+		foreach(var tc in testcases.OrderBy(tc => itemIdsDict[tc.TestCaseId]))
 		{
+			actualIds.Add(tc.TestCaseId);
+
 			var component = product.Components.First(c => c.ComponentId == tc.ComponentId);
 			if(component != null && component.Name != lastComponentName)
 			{
@@ -88,7 +106,7 @@
 				lastComponentName = component.Name;
 			}
 			wikiBuilder.AppendLine();
-			// TODO fix title (add testcase marker and id)
+			// fix title (add testcase marker and id)
 			wikiBuilder.AppendLine($"### TestCase: {tc.Title} {{id={tc.TestCaseId}}}");
 			if(!string.IsNullOrEmpty(tc.Text))
 			{
@@ -98,16 +116,16 @@
 			// TODO add attributes
 		}
 
-		wikiText = wikiBuilder.ToString();
-
-		await base.OnParametersSetAsync();
+		return (wikiBuilder.ToString(), actualIds);
 	}
 
 	string MakeNewTestCase()
 	{
 		var defaultComponent = product.Components.OrderBy(c => c.ComponentId).First();
-		return $@"# {defaultComponent.Name}
-## TestCase: test case title
+		return
+$@"# {product.Name}
+## {defaultComponent.Name}
+### TestCase: test case title
 This scenario verifies proper initialization of the designer web component....
 
 @type: Functional  
@@ -170,7 +188,6 @@ This scenario verifies proper initialization of the designer web component....
 		var parseResult = TestCaseWikiParser.Parse(wiki);
 		if(parseResult.Count == 0)
 		{
-			result.Errors.Add("No testcase declaration found");
 			return result;
 		}
 		bool eqstr(string s1, string s2) => StringComparer.InvariantCultureIgnoreCase.Equals(s1, s2);
@@ -205,6 +222,7 @@ This scenario verifies proper initialization of the designer web component....
 			}
 
 			result.TestCases.Add(new TestCase() {
+				TestCaseId = tc.Id != null && int.TryParse(tc.Id, out var id) ? id : 0,
 				Title = tc.Title,
 				Description = "",
 				Text = tc.Text,
@@ -229,14 +247,61 @@ This scenario verifies proper initialization of the designer web component....
 		}
 
 		validationResult.Warnings.ForEach(w => _snackBar.Add(w, Severity.Warning));
+		int updateCount = 0, deleteCount = 0, insertCount = 0;
 
 		try
 		{
 			using var db = dbFactory.CreateDbContext();
 
-			db.AddRange(validationResult.TestCases);
+			var newCases = validationResult.TestCases.Where(tc => tc.TestCaseId == 0);
+			foreach (var newTestCase in newCases)
+			{
+				db.Add(newTestCase);
+				insertCount++;
+			}
+
+			var updatedCases = validationResult.TestCases.Where(tc => tc.TestCaseId > 0);
+			foreach (var updated in updatedCases)
+			{
+				var testCase = await db.TestCases.FirstOrDefaultAsync(t => t.TestCaseId == updated.TestCaseId);
+				if (testCase == null)
+				{
+					_snackBar.Add($"Failed to update test case id={updated.TestCaseId} because it was not found in database", Severity.Error);
+					continue;
+				}
+
+				testCase.Title = updated.Title;
+				testCase.Text = updated.Text;
+				testCase.ComponentId = updated.ComponentId;
+				testCase.EstimateHr = updated.EstimateHr;
+				testCase.IsAutomated = updated.IsAutomated;
+				testCase.StatusId = updated.StatusId;
+				testCase.PriorityId = updated.PriorityId;
+				testCase.TypeId = updated.TypeId;
+
+				if(db.Entry(testCase).State != EntityState.Unchanged)
+				{
+					updateCount++;
+				}
+			}
+			var deletedItems = renderedItemIds.Except(from c in updatedCases select c.TestCaseId);
+			foreach (var deletedId in deletedItems)
+			{
+				var testCase = await db.TestCases.FirstOrDefaultAsync(t => t.TestCaseId == deletedId);
+				if (testCase == null)
+				{
+					_snackBar.Add($"Failed to delete test case id={deletedId} because it was not found in database", Severity.Error);
+					continue;
+				}
+				db.TestCases.Remove(testCase);
+				deleteCount++;
+			}
+			
 			await db.SaveChangesAsync();
-			_snackBar.Add($"{validationResult.TestCases.Count} test cases were created successfully", Severity.Success);
+
+			if(insertCount > 0) _snackBar.Add($"{insertCount} test cases were added", Severity.Success);
+			if(updateCount > 0) _snackBar.Add($"{updateCount} test cases were updated", Severity.Success);
+			if(deleteCount > 0) _snackBar.Add($"{deleteCount} test cases were removed", Severity.Success);
 			uriHelper.NavigateTo("testcases");
 		}
 		catch(DbUpdateException updError)

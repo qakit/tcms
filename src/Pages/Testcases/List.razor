@@ -28,8 +28,7 @@ else
 	<MudTable @ref=table Items="@testcases" Dense="true" Striped="true" Filter="new Func<TestCase, bool>(Search)">
 		<ToolBarContent>
 			<MudButton Variant="Variant.Filled" OnClick="@(() => CreateNew())">Create New</MudButton>
-			<MudButton Variant="Variant.Filled" OnClick="@(() => CreateFromText())">Create New (text)</MudButton>
-			<MudButton Variant="Variant.Filled" OnClick="@(() => EditAll())">Edit cases (text)</MudButton>
+			<MudButton Variant="Variant.Filled" OnClick="@(() => EditAll())">Edit</MudButton>
 			<MudToolBarSpacer />
 			<MudTextField @bind-Value="@searchString" Placeholder="Search for test cases" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3"></MudTextField>
 		</ToolBarContent>
@@ -110,6 +109,6 @@ else
 
 	void CreateFromText()
 	{
-		navManager.NavigateTo($"testcases/createfromtext");
+		navManager.NavigateTo($"testcases/editastext/{1}");
 	}
 }
