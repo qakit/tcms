@@ -1,4 +1,4 @@
-@page "/products"
+@page "/manage/products"
 
 @using Microsoft.EntityFrameworkCore
 @using MudBlazor
@@ -87,11 +87,11 @@ else
 
 	void Edit(int productId)
 	{
-		navManager.NavigateTo($"products/edit/{productId}");
+		navManager.NavigateTo($"manage/products/edit/{productId}");
 	}
 
 	void CreateNew()
 	{
-		navManager.NavigateTo($"products/create");
+		navManager.NavigateTo($"manage/products/create");
 	}
 }

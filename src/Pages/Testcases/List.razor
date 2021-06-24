@@ -1,4 +1,4 @@
-@page "/testcases"
+@page "/products/{productId:int}/testcases"
 
 @using Microsoft.EntityFrameworkCore
 @using MudBlazor
@@ -7,22 +7,29 @@
 @inject IJSRuntime js
 
 @inject Microsoft.AspNetCore.Components.NavigationManager navManager
+@inject Microsoft.Extensions.Localization.IStringLocalizer<List> localizer
 @inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
 
 @* @attribute [Authorize(Policy = Constants.Permissions.TestCases.Edit)] *@
 
-@if (testcases == null)
+<MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-2">@localizer["Test cases"]</MudText>
+@if(product != null)
+{
+	<MudText Color="Color.Surface" Class="mb-4">@product.Name - @product.Description</MudText>
+}
+
+@if (testcases == null || product == null)
 {
 	<text>Loading...</text>
 }
-else if (testcases.Count == 0)
+@* else if (testcases.Count == 0)
 {
 	<text>No Records Found.</text>
 	<br>
 	<text>It's about time to ...</text>
 	<MudButton OnClick="@(() => CreateNew())">Create New</MudButton>
 	<MudButton OnClick="@(() => CreateFromText())">Create New (text)</MudButton>
-}
+} *@
 else
 {
 	<MudTable @ref=table Items="@testcases" Dense="true" Striped="true" Filter="new Func<TestCase, bool>(Search)">
@@ -30,6 +37,11 @@ else
 			<MudButton Variant="Variant.Filled" OnClick="@(() => CreateNew())">Create New</MudButton>
 			<MudButton Variant="Variant.Filled" OnClick="@(() => EditAll())">Edit</MudButton>
 			<MudToolBarSpacer />
+			<MudSelect T="int" @bind-Value="@filterComponentId" Label="Choose component" Variant="Variant.Text" Dense="true" SelectedValuesChanged=@RefreshList >
+				<MudSelectItem Value="0">All</MudSelectItem>
+				@foreach (var c in product.Components) { <MudSelectItem Value="@c.ComponentId">@c.Name</MudSelectItem> }
+			</MudSelect>
+
 			<MudTextField @bind-Value="@searchString" Placeholder="Search for test cases" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3"></MudTextField>
 		</ToolBarContent>
 		<HeaderContent>
@@ -54,14 +66,37 @@ else
 }
 
 @code {
+	[Parameter]
+	public int productId { get; set; }
+
+	Product product;
+
 	MudTable<TestCase> table;
 	IList<TestCase> testcases { get; set; }
 	string searchString { get; set; }
+	int filterComponentId { get; set; }
 
 	protected override async Task OnInitializedAsync()
 	{
 		using var db = dbFactory.CreateDbContext();
-		testcases = await db.TestCases.ToListAsync();
+		product = await db.Products.Include(p => p.Components).FirstAsync(p => p.ProductId == productId);
+		await RefreshList(db);
+	}
+
+	private async Task RefreshList()
+	{
+		using var db = dbFactory.CreateDbContext();
+		await RefreshList(db);
+	}
+
+	private async Task RefreshList(Data.ApplicationDbContext db)
+	{
+		testcases = await (from p in db.Products where p.ProductId == productId
+			from c in p.Components
+			where filterComponentId == 0 || c.ComponentId == filterComponentId
+			from t in c.TestCases
+			select t
+		).ToListAsync();
 	}
 
 	private bool Search(TestCase product)
@@ -94,21 +129,21 @@ else
 		var itemIds = table.FilteredItems.Select(tc => tc.TestCaseId.ToString()).ToArray();
 		var itemIdsStr = string.Join(',', itemIds);
 		// TODO productId must be specified upfront
-		navManager.NavigateTo($"testcases/editastext/{1}?Items={itemIdsStr}");
+		navManager.NavigateTo($"/products/{productId}/testcases/edit?Items={itemIdsStr}");
 	}
 
 	void Edit(int productId)
 	{
-		navManager.NavigateTo($"testcases/edit/{productId}");
+		navManager.NavigateTo($"products/{productId}/testcases/editform/{productId}");
 	}
 
 	void CreateNew()
 	{
-		navManager.NavigateTo($"testcases/create");
+		navManager.NavigateTo($"products/{productId}/testcases/create");
 	}
 
 	void CreateFromText()
 	{
-		navManager.NavigateTo($"testcases/editastext/{1}");
+		navManager.NavigateTo($"products/{productId}/testcases/edit");
 	}
 }

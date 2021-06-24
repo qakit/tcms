@@ -1,4 +1,4 @@
-@page "/testcases/create"
+@page "/products/{productId:int}/testcases/create"
 
 @using Microsoft.EntityFrameworkCore
 @using Data.Models
@@ -11,10 +11,13 @@
 
 <h3>Create</h3>
 
-<Form ButtonText="Create test case" Data="@testCase"
+<Form ButtonText="Create test case" Data="@testCase" ProductId="@productId"
     OnValidSubmit="@CreateTestCase" />
 
 @code {
+	[Parameter]
+	public int productId { get; set; }
+
     TestCase testCase = new (){
         Title = "",
         Description = "",

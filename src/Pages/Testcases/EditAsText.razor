@@ -1,4 +1,4 @@
-@page "/testcases/editastext/{productId:int}"
+@page "/products/{productId:int}/testcases/edit"
 
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.EntityFrameworkCore
@@ -9,11 +9,14 @@
 
 @inject NavigationManager uriHelper
 @inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
+@inject Microsoft.Extensions.Localization.IStringLocalizer<EditAsText> localizer
 @inject IJSRuntime js
 
 @attribute [Authorize(Policy = Constants.Permissions.TestCases.Edit)]
 
-<h3>Edit test cases</h3>
+<MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-2">@localizer["Edit test cases"]</MudText>
+<MudText Color="Color.Surface" Class="mb-4">@product?.Name - @product?.Description</MudText>
+
 <MudGrid>
     <MudItem xs="6">
         <MudTextField T="string" Variant="Variant.Filled"
@@ -37,6 +40,7 @@
 </MudGrid>
 
 @code {
+	[Parameter] public int productId { get; set; }
 
 	public string itemIdsStr {get; set; }
 
@@ -47,19 +51,15 @@
 	Product product;
 	ValidationContext validationContext = ValidationContext.Empty;
 
-	[Parameter]
-	public int productId {get; set;}
-
 	protected override async Task OnInitializedAsync()
 	{
 		using var db = dbFactory.CreateDbContext();
-		validationContext = await ValidationContext.CreateAsync(db);
+		validationContext = await ValidationContext.CreateAsync(db, productId);
+		product = validationContext.Products.First();
 	}
 
 	protected override async Task OnParametersSetAsync()
 	{
-		product = validationContext.Products.First(p => p.ProductId == productId);
-
 		var uri = uriHelper.ToAbsoluteUri(uriHelper.Uri);
 		if(!QueryHelpers.ParseQuery(uri.Query).TryGetValue("Items", out var itemIdsStr))
 		{
@@ -163,11 +163,11 @@ This scenario verifies proper initialization of the designer web component....
 		{}
 
 		public static ValidationContext Empty { get; } = new ValidationContext();
-		public static async Task<ValidationContext> CreateAsync(Data.ApplicationDbContext db)
+		public static async Task<ValidationContext> CreateAsync(Data.ApplicationDbContext db, int productId)
 		{
 			return new ValidationContext
 			{
-				Products = await db.Products.Include(p => p.Components).ToListAsync(),
+				Products = await db.Products.Include(p => p.Components).Where(p => p.ProductId == productId).ToListAsync(),
 				CaseTypes = await db.TestCaseTypes.ToListAsync(),
 				CasePriorities = await db.TestCasePriorities.ToListAsync()
 			};
@@ -176,9 +176,9 @@ This scenario verifies proper initialization of the designer web component....
 
 	class ValidationResult
 	{
-		public List<TestCase> TestCases { get; } = new List<TestCase>();
-		public List<string> Errors { get; } = new List<string>();
-		public List<string> Warnings { get; } = new List<string>();
+		public List<TestCase> TestCases { get; } = new ();
+		public List<string> Errors { get; } = new ();
+		public List<string> Warnings { get; } = new ();
 	}
 
 	private static ValidationResult Validate(ValidationContext context, string wiki)
@@ -302,7 +302,7 @@ This scenario verifies proper initialization of the designer web component....
 			if(insertCount > 0) _snackBar.Add($"{insertCount} test cases were added", Severity.Success);
 			if(updateCount > 0) _snackBar.Add($"{updateCount} test cases were updated", Severity.Success);
 			if(deleteCount > 0) _snackBar.Add($"{deleteCount} test cases were removed", Severity.Success);
-			uriHelper.NavigateTo("testcases");
+			uriHelper.NavigateTo($"products/{productId}/testcases");
 		}
 		catch(DbUpdateException updError)
 		{

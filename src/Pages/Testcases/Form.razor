@@ -102,6 +102,7 @@
 </EditForm>
 
 @code {
+	[Parameter] public int ProductId { get; set; }
 	[Parameter] public TestCase Data { get; set; }
 	[Parameter] public string ButtonText { get; set; } = "Save";
 	[Parameter] public EventCallback OnValidSubmit { get; set; }
@@ -114,8 +115,8 @@
 	protected override async Task OnInitializedAsync()
 	{
 		using var db = dbFactory.CreateDbContext();
-		var allProducts = await db.Products.Include(p => p.Components).ToListAsync();
-		components = (from p in allProducts from c in p.Components select c).ToList();
+		@* var product = await db.Products.FirstOrDefaultAsync(p => p.ProductId == ProductId); *@
+		components = (from p in db.Products where p.ProductId == ProductId from c in p.Components select c).ToList();
 		statuses = await db.TestCaseStatuses.ToListAsync();
 		caseTypes = await db.TestCaseTypes.ToListAsync();
 		casePriorities = await db.TestCasePriorities.ToListAsync();

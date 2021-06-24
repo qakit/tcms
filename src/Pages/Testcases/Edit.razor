@@ -1,4 +1,4 @@
-@page "/testcases/edit/{testCaseId:int}"
+@page "/products/{productId:int}/testcases/editform/{testCaseId:int}"
 @using Microsoft.EntityFrameworkCore
 @using Data
 @using Data.Models
@@ -11,9 +11,10 @@
 @attribute [Authorize(Policy = Constants.Permissions.TestCases.Edit)]
 
 <MudText Typo="Typo.h3">Edit</MudText>
-<Form ButtonText="Update" Data="testCase" OnValidSubmit="@EditProduct" />
+<Form ButtonText="Update" Data="testCase" OnValidSubmit="@EditProduct" ProductId="@productId" />
 
 @code {
+    [Parameter] public int productId { get; set; }
     [Parameter] public int testCaseId { get; set; }
     TestCase testCase = new();
     ApplicationDbContext _context;
@@ -30,7 +31,7 @@
     {
         _context.Entry(testCase).State = EntityState.Modified;
         await _context.SaveChangesAsync();
-        _snackBar.Add($"{testCase.Title} updates successfully", Severity.Success);
+        _snackBar.Add($"{testCase.Title} updated successfully", Severity.Success);
         uriHelper.NavigateTo("testcases");
     }
 
