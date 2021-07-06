@@ -6,6 +6,7 @@
 @using Data.Models
 @using System.Text
 @using tcms.Domain
+@using tcms.Components
 
 @inject NavigationManager uriHelper
 @inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
@@ -18,17 +19,15 @@
 <MudText Color="Color.Surface" Class="mb-4">@product?.Name - @product?.Description</MudText>
 
 <MudGrid>
-    <MudItem xs="6">
-        <MudTextField T="string" Variant="Variant.Filled"
-			@bind-Value="@wikiText"
-			DebounceInterval="900"
-			Lines="40" Margin="Margin.Dense" />
+	<MudItem xs="12">
+		<WikiEdit @ref="wikiEdit" InitialValue="@initialWikiText" />
     </MudItem>
-    <MudItem xs="6">
+
+	@* <MudItem xs="6">
 		<div style="height:56em;overflow: auto;">
 			@((MarkupString)renderedWiki)
 		</div>
-    </MudItem>
+    </MudItem> *@
 
 	<MudCard>
 		<MudCardActions>
@@ -43,9 +42,10 @@
 	[Parameter] public int productId { get; set; }
 
 	public string itemIdsStr {get; set; }
+	private WikiEdit wikiEdit { get; set; }
 
-	string wikiText = "";
-	string renderedWiki => Markdig.Markdown.ToHtml(wikiText);
+	string initialWikiText = "";
+	@* string renderedWiki => Markdig.Markdown.ToHtml(wikiText); *@
 	List<int> renderedItemIds = new();
 
 	Product product;
@@ -63,7 +63,7 @@
 		var uri = uriHelper.ToAbsoluteUri(uriHelper.Uri);
 		if(!QueryHelpers.ParseQuery(uri.Query).TryGetValue("Items", out var itemIdsStr))
 		{
-			wikiText = MakeNewTestCase();
+			initialWikiText = MakeNewTestCase();
 			renderedItemIds = new();
 		}
 		else
@@ -73,7 +73,7 @@
 					from id in str.Split(',')
 					select int.Parse(id)
 			);
-			wikiText = wiki;
+			initialWikiText = wiki;
 			renderedItemIds = actualIds;
 		}
 
@@ -139,9 +139,10 @@ This scenario verifies proper initialization of the designer web component....
 	}
 	
 
-	void OnValidate()
+	async Task OnValidate()
 	{
-		var validationResult = Validate(validationContext, wikiText);
+		var wiki = await wikiEdit.GetValue();
+		var validationResult = Validate(validationContext, wiki);
 
 		validationResult.Errors.ForEach(e => _snackBar.Add(e, Severity.Error));
 		validationResult.Warnings.ForEach(w => _snackBar.Add(w, Severity.Warning));
@@ -238,7 +239,9 @@ This scenario verifies proper initialization of the designer web component....
 
 	async Task OnSave()
 	{
-		var validationResult = Validate(validationContext, wikiText);
+		var wiki = await wikiEdit.GetValue();
+
+		var validationResult = Validate(validationContext, wiki);
 		if (validationResult.Errors.Count > 0)
 		{
 			validationResult.Errors.ForEach(e => _snackBar.Add(e, Severity.Error));
