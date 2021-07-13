@@ -1,4 +1,4 @@
-@page "/products/edit/{productId:int}"
+@page "/manage/products/edit/{productId:int}"
 @using Microsoft.EntityFrameworkCore
 @using Data
 @using Data.Models
@@ -83,7 +83,7 @@
 		try {
 			await _context.SaveChangesAsync();
 			_snackBar.Add($"{product.Name} updated successfully", Severity.Success);
-			if (navigateAway) uriHelper.NavigateTo("products");
+			if (navigateAway) uriHelper.NavigateTo("manage/products");
 		}
 		catch(DbUpdateException updError)
 		{

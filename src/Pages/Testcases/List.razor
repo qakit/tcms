@@ -1,0 +1,153 @@
+@page "/products/{productId:int}/testcases"
+
+@using Microsoft.EntityFrameworkCore
+@using MudBlazor
+@using Data.Models
+
+@inject IJSRuntime js
+
+@inject Microsoft.AspNetCore.Components.NavigationManager navManager
+@inject Microsoft.Extensions.Localization.IStringLocalizer<List> localizer
+@inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
+
+@* @attribute [Authorize(Policy = Constants.Permissions.TestCases.Edit)] *@
+
+<MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-2">@localizer["Test cases"] @(product != null ? $" - {product.Name}" : "")</MudText>
+@if(product != null)
+{
+	<MudText Color="Color.Surface" Class="mb-4">@product.Description</MudText>
+}
+
+@if (listItems2 == null || product == null)
+{
+	<text>Loading...</text>
+}
+else
+{
+	<MudToolBar>
+		<MudButton Variant="Variant.Filled" OnClick="@(() => CreateNew())">Create New</MudButton>
+		<MudButton Variant="Variant.Filled" OnClick="@(() => EditAll())">Edit</MudButton>
+		<MudToolBarSpacer />
+		@* <MudSelect T="int" @bind-Value="@filterComponentId" Label="Choose component" Variant="Variant.Text" Dense="true" SelectedValuesChanged=@RefreshList >
+			<MudSelectItem Value="0">All</MudSelectItem>
+			@foreach (var c in product.Components) { <MudSelectItem Value="@c.ComponentId">@c.Name</MudSelectItem> }
+		</MudSelect> *@
+
+		<MudTextField @bind-Value="@searchString" Placeholder="Search for test cases" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3"></MudTextField>
+	</MudToolBar>
+
+	<MudGrid>
+		<MudItem md="5">
+			<MudTreeView T="string" Dense="true">
+				@foreach (var c in listItems2) {
+					<MudTreeViewItem
+						Value="@c.Component.Name"
+						Icon="@Icons.Filled.LocalOffer"
+						EndText="@c.TestCases.Count().ToString()"
+						Expanded>
+						@foreach (var tc in c.TestCases) {
+							<MudTreeViewItem T="string">
+								<Content>
+									<MudTreeViewItemToggleButton Visible=false />
+									<MudIcon Icon="@Icons.Custom.FileFormats.FileDocument" Class="ml-0 mr-2" Color="@Color.Default" />
+									<MudText>@($"{tc.TestCaseId}. {tc.Title}")</MudText>
+									<MudMenu Icon="@Icons.Material.Filled.MoreHoriz" ActivationEvent="@MouseEvent.MouseOver" Dense>
+										<MudMenuItem @onclick="@(()=> Edit(@tc.TestCaseId))">Edit</MudMenuItem>
+										<MudMenuItem @onclick="@(()=> Delete(@tc.TestCaseId))">Delete</MudMenuItem>
+									</MudMenu>
+								</Content>
+								</MudTreeViewItem>
+						}
+					</MudTreeViewItem> }
+			</MudTreeView>
+		</MudItem>
+	</MudGrid>
+}
+
+@code {
+	public class ListItem2
+	{
+		public Component Component { get; init; }
+		public HashSet<TestCase> TestCases { get; init; }
+	}
+
+	[Parameter]
+	public int productId { get; set; }
+
+	Product product;
+
+	HashSet<ListItem2> listItems2 { get; set; }
+	string searchString { get; set; }
+	int filterComponentId { get; set; }
+
+	protected async override Task OnParametersSetAsync()
+	{
+		await base.OnParametersSetAsync();
+
+		using var db = dbFactory.CreateDbContext();
+		product = await db.Products.Include(p => p.Components).FirstAsync(p => p.ProductId == productId);
+		await RefreshList(db);
+	}
+
+	private async Task RefreshList()
+	{
+		using var db = dbFactory.CreateDbContext();
+		await RefreshList(db);
+	}
+
+	private async Task RefreshList(Data.ApplicationDbContext db)
+	{
+		listItems2 = (from p in db.Products where p.ProductId == productId
+			from c in p.Components
+			where filterComponentId == 0 || c.ComponentId == filterComponentId
+			orderby c.Name, c.ComponentId
+			select new ListItem2() { Component = c, TestCases = c.TestCases.ToHashSet() }
+		).ToHashSet();
+	}
+
+	async Task Delete(int testCaseId)
+	{
+		using var db = dbFactory.CreateDbContext();
+		
+		var testcase = (from l in listItems2
+			from tc in l.TestCases
+			where tc.TestCaseId == testCaseId
+			select tc).FirstOrDefault();
+		if (!await js.InvokeAsync<bool>("confirm", $"Do you want to delete {testcase.Title}'s Record?")) return;
+		
+		try {
+			db.Remove(testcase);
+			await db.SaveChangesAsync();
+			await OnInitializedAsync();
+		}
+		catch(DbUpdateException updError)
+		{
+			_snackBar.Add($"Failed to delete test case: {updError.InnerException.Message}", Severity.Error);
+		}
+	}
+
+	void EditAll()
+	{
+		var itemIds = (from l in listItems2
+			from tc in l.TestCases
+			select tc.TestCaseId.ToString()).ToArray();
+		var itemIdsStr = string.Join(',', itemIds);
+		// TODO productId must be specified upfront
+		navManager.NavigateTo($"/products/{productId}/testcases/edit?Items={itemIdsStr}");
+	}
+
+	void Edit(int testCaseId)
+	{
+		navManager.NavigateTo($"products/{productId}/testcases/editform/{testCaseId}");
+	}
+
+	void CreateNew()
+	{
+		navManager.NavigateTo($"products/{productId}/testcases/create");
+	}
+
+	void CreateFromText()
+	{
+		navManager.NavigateTo($"products/{productId}/testcases/edit");
+	}
+}

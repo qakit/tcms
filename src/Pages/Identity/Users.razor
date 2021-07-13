@@ -8,7 +8,7 @@
 
 @inject IJSRuntime js
 @inject UserManager<IdentityUser> _userManager
-@inject Microsoft.Extensions.Localization.IStringLocalizer<Roles> localizer
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Users> localizer
 @inject Microsoft.AspNetCore.Components.NavigationManager _navigationManager
 
 @attribute [Authorize(Policy = Constants.Permissions.Admin.ManageUsers)]

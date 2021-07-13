@@ -1,0 +1,325 @@
+@page "/products/{productId:int}/testcases/edit"
+
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.EntityFrameworkCore
+@using Markdig
+@using Data.Models
+@using System.Text
+@using tcms.Domain
+@using tcms.Components
+
+@inject NavigationManager uriHelper
+@inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
+@inject Microsoft.Extensions.Localization.IStringLocalizer<EditAsText> localizer
+@inject IJSRuntime js
+
+@attribute [Authorize(Policy = Constants.Permissions.TestCases.Edit)]
+
+<MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-2">@localizer["Edit test cases"]</MudText>
+<MudText Color="Color.Surface" Class="mb-4">@product?.Name - @product?.Description</MudText>
+
+<MudGrid>
+	<MudItem xs="12">
+		<WikiEdit @ref="wikiEdit" InitialValue="@initialWikiText" />
+    </MudItem>
+
+	@* <MudItem xs="6">
+		<div style="height:56em;overflow: auto;">
+			@((MarkupString)renderedWiki)
+		</div>
+    </MudItem> *@
+
+	<MudCard>
+		<MudCardActions>
+			<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick=@OnValidate>Validate</MudButton>
+			<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick=@OnSave>Save</MudButton>
+			<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick=@Back>Back</MudButton>
+		</MudCardActions>
+	</MudCard>
+</MudGrid>
+
+@code {
+	[Parameter] public int productId { get; set; }
+
+	public string itemIdsStr {get; set; }
+	private WikiEdit wikiEdit { get; set; }
+
+	string initialWikiText = "";
+	@* string renderedWiki => Markdig.Markdown.ToHtml(wikiText); *@
+	List<int> renderedItemIds = new();
+
+	Product product;
+	ValidationContext validationContext = ValidationContext.Empty;
+
+	protected override async Task OnInitializedAsync()
+	{
+		using var db = dbFactory.CreateDbContext();
+		validationContext = await ValidationContext.CreateAsync(db, productId);
+		product = validationContext.Products.First();
+	}
+
+	protected override async Task OnParametersSetAsync()
+	{
+		var uri = uriHelper.ToAbsoluteUri(uriHelper.Uri);
+		if(!QueryHelpers.ParseQuery(uri.Query).TryGetValue("Items", out var itemIdsStr))
+		{
+			initialWikiText = MakeNewTestCase();
+			renderedItemIds = new();
+		}
+		else
+		{
+			var (wiki, actualIds) = await MakeWikiOfTestCases(
+				from str in itemIdsStr
+					from id in str.Split(',')
+					select int.Parse(id)
+			);
+			initialWikiText = wiki;
+			renderedItemIds = actualIds;
+		}
+
+		await base.OnParametersSetAsync();
+	}
+
+	async Task<(string,List<int>)> MakeWikiOfTestCases(IEnumerable<int> testCaseIds)
+	{
+		var itemIds = testCaseIds.ToList();
+		var itemIdsDict = itemIds.Select((id, idx) => new {id, idx}).ToDictionary(i => i.id, i => i.idx);
+
+		var wikiBuilder = new StringBuilder();
+		wikiBuilder.AppendLine($"# {product.Name}");
+		var actualIds = new List<int>();
+
+		string lastComponentName = null;
+		using var db = dbFactory.CreateDbContext();
+		var testcases = await (from testcase in db.TestCases
+			where itemIds.Contains(testcase.TestCaseId)
+			select testcase).ToListAsync();
+
+		foreach(var tc in testcases.OrderBy(tc => itemIdsDict[tc.TestCaseId]))
+		{
+			actualIds.Add(tc.TestCaseId);
+
+			var component = product.Components.First(c => c.ComponentId == tc.ComponentId);
+			if(component != null && component.Name != lastComponentName)
+			{
+				wikiBuilder.AppendLine($"## {component.Name}");
+				lastComponentName = component.Name;
+			}
+			wikiBuilder.AppendLine();
+			// fix title (add testcase marker and id)
+			wikiBuilder.AppendLine($"### TestCase: {tc.Title} {{id={tc.TestCaseId}}}");
+			if(!string.IsNullOrEmpty(tc.Text))
+			{
+				wikiBuilder.AppendLine(tc.Text);
+				wikiBuilder.AppendLine();
+			}
+			// TODO add attributes
+		}
+
+		return (wikiBuilder.ToString(), actualIds);
+	}
+
+	string MakeNewTestCase()
+	{
+		var defaultComponent = product.Components.OrderBy(c => c.ComponentId).First();
+		return
+$@"# {product.Name}
+## {defaultComponent.Name}
+### TestCase: test case title
+This scenario verifies proper initialization of the designer web component....
+
+@type: Functional  
+@priority: High  
+@estimateHr: 0  
+ 
+### Repro steps
+1. step 1
+1. step 2
+";
+	}
+	
+
+	async Task OnValidate()
+	{
+		var wiki = await wikiEdit.GetValue();
+		var validationResult = Validate(validationContext, wiki);
+
+		validationResult.Errors.ForEach(e => _snackBar.Add(e, Severity.Error));
+		validationResult.Warnings.ForEach(w => _snackBar.Add(w, Severity.Warning));
+
+		if(validationResult.Errors.Count > 0)
+		{
+			return;
+		}
+		_snackBar.Add($"{validationResult.TestCases.Count} test cases were found", Severity.Info);
+	}
+
+	class ValidationContext
+	{
+		public List<Product> Products { get; init; } = new ();
+		public List<TestCaseType> CaseTypes { get; init; } = new ();
+		public List<TestCasePriority> CasePriorities { get; init; } = new ();
+
+		private ValidationContext()
+		{}
+
+		public static ValidationContext Empty { get; } = new ValidationContext();
+		public static async Task<ValidationContext> CreateAsync(Data.ApplicationDbContext db, int productId)
+		{
+			return new ValidationContext
+			{
+				Products = await db.Products.Include(p => p.Components).Where(p => p.ProductId == productId).ToListAsync(),
+				CaseTypes = await db.TestCaseTypes.ToListAsync(),
+				CasePriorities = await db.TestCasePriorities.ToListAsync()
+			};
+		}
+	}
+
+	class ValidationResult
+	{
+		public List<TestCase> TestCases { get; } = new ();
+		public List<string> Errors { get; } = new ();
+		public List<string> Warnings { get; } = new ();
+	}
+
+	private static ValidationResult Validate(ValidationContext context, string wiki)
+	{
+		var result = new ValidationResult();
+
+		var parseResult = TestCaseWikiParser.Parse(wiki);
+		if(parseResult.Count == 0)
+		{
+			return result;
+		}
+		bool eqstr(string s1, string s2) => StringComparer.InvariantCultureIgnoreCase.Equals(s1, s2);
+
+		foreach(var tc in parseResult)
+		{
+			var product = context.Products.FirstOrDefault(p => eqstr(p.Name, tc.Project));
+			if (product == null)
+			{
+				result.Errors.Add($"Failed to find project/product '{tc.Project}'");
+				continue;
+			}
+
+			var component = product.Components.FirstOrDefault(c => eqstr(c.Name, tc.ComponentPath));
+			if (component == null)
+			{
+				result.Errors.Add($"Failed to find component '{tc.ComponentPath}'");
+				continue;
+			}
+			var typeId = context.CaseTypes.FirstOrDefault(t => eqstr(t.Name, tc.Type ?? "other"))?.TestCaseTypeId;
+			var priorityId = context.CasePriorities.FirstOrDefault(t => eqstr(t.Name, tc.Priority ?? "medium"))?.TestCasePriorityId;
+
+			if(!typeId.HasValue)
+			{
+				result.Warnings.Add($"Failed to find type '{tc.Type}', using \"other\"");
+				typeId = 1; // other
+			}
+			if(!priorityId.HasValue)
+			{
+				result.Warnings.Add($"Failed to find priority '{tc.Priority}', using \"medium\"");
+				priorityId = 2; // medium
+			}
+
+			result.TestCases.Add(new TestCase() {
+				TestCaseId = tc.Id != null && int.TryParse(tc.Id, out var id) ? id : 0,
+				Title = tc.Title,
+				Description = "",
+				Text = tc.Text,
+				ComponentId = component.ComponentId,
+				StatusId = 1,	// Proposed
+				EstimateHr = tc.EstimateHr ?? 0.0,
+				TypeId = typeId.Value,
+				PriorityId = priorityId.Value,
+			});
+		}
+		return result;
+	}
+
+	async Task OnSave()
+	{
+		var wiki = await wikiEdit.GetValue();
+
+		var validationResult = Validate(validationContext, wiki);
+		if (validationResult.Errors.Count > 0)
+		{
+			validationResult.Errors.ForEach(e => _snackBar.Add(e, Severity.Error));
+			validationResult.Warnings.ForEach(w => _snackBar.Add(w, Severity.Warning));
+			return;
+		}
+
+		validationResult.Warnings.ForEach(w => _snackBar.Add(w, Severity.Warning));
+		int updateCount = 0, deleteCount = 0, insertCount = 0;
+
+		try
+		{
+			using var db = dbFactory.CreateDbContext();
+
+			var newCases = validationResult.TestCases.Where(tc => tc.TestCaseId == 0);
+			foreach (var newTestCase in newCases)
+			{
+				db.Add(newTestCase);
+				insertCount++;
+			}
+
+			var updatedCases = validationResult.TestCases.Where(tc => tc.TestCaseId > 0);
+			foreach (var updated in updatedCases)
+			{
+				var testCase = await db.TestCases.FirstOrDefaultAsync(t => t.TestCaseId == updated.TestCaseId);
+				if (testCase == null)
+				{
+					_snackBar.Add($"Failed to update test case id={updated.TestCaseId} because it was not found in database", Severity.Error);
+					continue;
+				}
+
+				testCase.Title = updated.Title;
+				testCase.Text = updated.Text;
+				testCase.ComponentId = updated.ComponentId;
+				testCase.EstimateHr = updated.EstimateHr;
+				testCase.IsAutomated = updated.IsAutomated;
+				testCase.StatusId = updated.StatusId;
+				testCase.PriorityId = updated.PriorityId;
+				testCase.TypeId = updated.TypeId;
+
+				if(db.Entry(testCase).State != EntityState.Unchanged)
+				{
+					updateCount++;
+				}
+			}
+			var deletedItems = renderedItemIds.Except(from c in updatedCases select c.TestCaseId);
+			foreach (var deletedId in deletedItems)
+			{
+				var testCase = await db.TestCases.FirstOrDefaultAsync(t => t.TestCaseId == deletedId);
+				if (testCase == null)
+				{
+					_snackBar.Add($"Failed to delete test case id={deletedId} because it was not found in database", Severity.Error);
+					continue;
+				}
+				db.TestCases.Remove(testCase);
+				deleteCount++;
+			}
+			
+			await db.SaveChangesAsync();
+
+			if(insertCount > 0) _snackBar.Add($"{insertCount} test cases were added", Severity.Success);
+			if(updateCount > 0) _snackBar.Add($"{updateCount} test cases were updated", Severity.Success);
+			if(deleteCount > 0) _snackBar.Add($"{deleteCount} test cases were removed", Severity.Success);
+			uriHelper.NavigateTo($"products/{productId}/testcases");
+		}
+		catch(DbUpdateException updError)
+		{
+			_snackBar.Add($"Failed to create testcase: {updError.InnerException.Message}", Severity.Error);
+		}
+		catch(Exception error)
+		{
+			_snackBar.Add($"Fatal error: {error.InnerException.Message}", Severity.Error);
+		}
+
+	}
+
+	async Task Back() {
+		await js.InvokeVoidAsync("history.back");
+	}
+
+}

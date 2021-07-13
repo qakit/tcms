@@ -1,0 +1,193 @@
+#!csharp
+
+var sampleText = @"
+# Designer
+
+## TestCase: Displays the blank report after ""New"" command
+
+
+This scenario verifies proper initialization of the designer web component....
+
+@type: Functional
+@status: Approved
+@priority: High
+@estimateHr: 0
+@automated: true
+
+### Repro steps
+1. create blank form
+2. drop designer component
+3. start the project (press F5)
+
+### Expected
+The blank surface is shown
+			";
+
+#!markdown
+
+## How to use
+Sample book to see the structure of Markdig AST.
+
+#!csharp
+
+#r "nuget: Markdig.Signed"
+// #r "nuget: Newtonsoft.Json, 13.0.1"
+
+using System.Text;
+
+using Markdig;
+using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
+var result = Markdown.Parse(sampleText);
+
+void collectInlineText(Inline inline, StringBuilder builder)
+{
+    if(inline is LiteralInline lit)
+    {
+        builder.Append(lit.Content.ToString());
+    }
+    else if(inline is ContainerInline container)
+    {
+        foreach(var item in container)
+        {
+            collectInlineText(item, builder);
+        }
+    }
+}
+
+string getHeadingText(HeadingBlock block)
+{
+    if(block.Inline == null) return "";
+    StringBuilder builder = new();
+    collectInlineText(block.Inline, builder);
+
+    return builder.ToString();
+}
+
+void collectAttributeDefinitions(Inline inline, List<string> result)
+{
+    if(inline is LiteralInline lit)
+    {
+        var text = lit.Content.ToString().Trim();
+        if(text.StartsWith('@')) result.Add(text);
+    }
+    else if(inline is ContainerInline container)
+    {
+        foreach(var item in container)
+        {
+            collectAttributeDefinitions(item, result);
+        }
+    }
+}
+
+void printInline(Inline inline)
+{
+    if(inline is LiteralInline lit)
+    {
+        Console.WriteLine($"literal {lit.Content.ToString()}");
+    }
+    else if(inline is LineBreakInline)
+    {
+        Console.WriteLine("\\n");
+    }
+    else if(inline is ContainerInline container)
+    {
+        Console.WriteLine("container");
+        foreach(var item in container)
+        {
+            printInline(item);
+        }
+        Console.WriteLine("/container");
+    }
+    else
+    {
+        Console.WriteLine(inline.ToString());
+    }
+}
+
+var isTestCase = false;
+var testCaseHeadingLevel = 0;
+var testCaseAttributes = new List<string>();
+
+Block startBlock = null;
+Block nextBlock = null;
+
+foreach(var block in result)
+{
+    if(block is HeadingBlock h)
+    {
+        var headingTitle = getHeadingText(h);
+        Console.WriteLine($"Heading{h.Level} {headingTitle}");
+
+        if(isTestCase && h.Level <= testCaseHeadingLevel)
+        {
+            isTestCase = false;
+            nextBlock = block;
+        }
+        if(!isTestCase && headingTitle.StartsWith("testcase:", StringComparison.InvariantCultureIgnoreCase))
+        {
+            isTestCase = true;
+            testCaseHeadingLevel = h.Level;
+            startBlock = block;
+        }
+    }
+    else if(block is ParagraphBlock p)
+    {
+        if(isTestCase)
+        {
+            collectAttributeDefinitions(p.Inline, testCaseAttributes);
+        }
+    }
+}
+Console.WriteLine("Text");
+var start = startBlock?.Span.Start ?? 0;
+var end = nextBlock?.Span.Start ?? -1;
+var text = end > start ? sampleText.Substring(start, end - start) : sampleText.Substring(start);
+Console.WriteLine(text);
+
+Console.WriteLine("Attributes");
+foreach(var a in testCaseAttributes)
+{
+    Console.WriteLine(a);
+}
+
+#!markdown
+
+# Generate new document
+
+#!csharp
+
+#r "nuget: Markdig.Signed"
+
+using System.Text;
+
+
+var breadcrumbs = new[] { "one", "two", "3", "4" };
+var startBlockLevel = 2;
+var projectName = breadcrumbs.FirstOrDefault() ?? "";
+var componentPath = string.Join('/', breadcrumbs.Take(startBlockLevel).Skip(1).Where(b => !string.IsNullOrWhiteSpace(b)).ToArray());
+
+Console.WriteLine(projectName);
+Console.WriteLine(componentPath);
+
+#!csharp
+
+using System.Text.RegularExpressions;
+
+var r = new Regex(@"{(\w+)=([^}]+)}\s*");
+var teststr = "title goes here {id=12354} and continues here {class=normal tt}.";
+
+var remStart = 0;
+var remainder = new StringBuilder();
+var result = r.Matches(teststr);
+foreach(Match m in result)
+{
+    remainder.Append(teststr.Substring(remStart, m.Index - remStart));
+    remStart = m.Index + m.Length;
+
+    Console.WriteLine(m.ToString());
+    Console.WriteLine($"  {m.Groups[1].Value}:{m.Groups[2].Value}");
+}
+remainder.Append(teststr.Substring(remStart));
+
+Console.WriteLine($"remainder: '{remainder}'.");

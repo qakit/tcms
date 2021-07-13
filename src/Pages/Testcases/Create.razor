@@ -1,0 +1,54 @@
+@page "/products/{productId:int}/testcases/create"
+
+@using Microsoft.EntityFrameworkCore
+@using Data.Models
+@using tcms.Pages.Testcases
+
+@inject NavigationManager uriHelper
+@inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
+
+@attribute [Authorize(Policy = Constants.Permissions.TestCases.Edit)]
+
+<h3>Create</h3>
+
+<Form ButtonText="Create test case" Data="@testCase" ProductId="@productId"
+    OnValidSubmit="@CreateTestCase" />
+
+@code {
+	[Parameter]
+	public int productId { get; set; }
+
+    TestCase testCase = new (){
+        Title = "",
+        Description = "",
+		Text = "",
+        ComponentId = 1, // other/unspecified
+        StatusId = 1,	// Proposed
+        EstimateHr = 0,
+        TypeId = 1,		// other
+        PriorityId = 2,
+        Steps = new HashSet<TestCaseStep> {
+            new() { Text = "Step", Ordinal = 1 }
+        }
+    };
+
+	async Task CreateTestCase()
+	{
+		try
+		{
+			using var db = dbFactory.CreateDbContext();
+			db.Add(testCase);
+			await db.SaveChangesAsync();
+			_snackBar.Add($"{testCase.Title} created successfully", Severity.Success);
+			uriHelper.NavigateTo("testcases");
+		}
+		catch(DbUpdateException updError)
+		{
+			_snackBar.Add($"Failed to create testcase: {updError.InnerException.Message}", Severity.Error);
+		}
+		catch(Exception error)
+		{
+			_snackBar.Add($"Fatal error: {error.InnerException.Message}", Severity.Error);
+		}
+	}
+}

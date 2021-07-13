@@ -160,12 +160,10 @@ namespace tcms.Data.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ProviderKey")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("text");
@@ -202,12 +200,10 @@ namespace tcms.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Value")
                         .HasColumnType("text");
@@ -430,29 +426,36 @@ namespace tcms.Data.Migrations
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int?>("PriorityTestCasePriorityId")
+                    b.Property<int>("PriorityId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("StatusTestCaseStatusId")
+                    b.Property<int>("StatusId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<int?>("TypeTestCaseTypeId")
+                    b.Property<int>("TypeId")
                         .HasColumnType("integer");
 
                     b.HasKey("TestCaseId");
 
                     b.HasIndex("ComponentId");
 
-                    b.HasIndex("PriorityTestCasePriorityId");
+                    b.HasIndex("PriorityId");
 
-                    b.HasIndex("StatusTestCaseStatusId");
+                    b.HasIndex("StatusId");
 
-                    b.HasIndex("TypeTestCaseTypeId");
+                    b.HasIndex("Title");
+
+                    b.HasIndex("TypeId");
 
                     b.ToTable("TestCases", "testcases");
                 });
@@ -640,21 +643,26 @@ namespace tcms.Data.Migrations
                         new
                         {
                             TestCaseTypeId = 1,
-                            Name = "Functional"
+                            Name = "Other"
                         },
                         new
                         {
                             TestCaseTypeId = 2,
-                            Name = "Usability"
+                            Name = "Functional"
                         },
                         new
                         {
                             TestCaseTypeId = 3,
-                            Name = "Performance"
+                            Name = "Usability"
                         },
                         new
                         {
                             TestCaseTypeId = 4,
+                            Name = "Performance"
+                        },
+                        new
+                        {
+                            TestCaseTypeId = 5,
                             Name = "Regression"
                         });
                 });
@@ -749,19 +757,21 @@ namespace tcms.Data.Migrations
 
                     b.HasOne("tcms.Data.Models.TestCasePriority", "Priority")
                         .WithMany("TestCases")
-                        .HasForeignKey("PriorityTestCasePriorityId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("PriorityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("tcms.Data.Models.TestCaseStatus", "Status")
                         .WithMany("TestCases")
-                        .HasForeignKey("StatusTestCaseStatusId")
+                        .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("tcms.Data.Models.TestCaseType", "Type")
                         .WithMany("TestCases")
-                        .HasForeignKey("TypeTestCaseTypeId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("TypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Component");
 

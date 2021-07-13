@@ -12,4 +12,9 @@ namespace tcms.Constants
 
 		public const string DefaultPassword = "Pwd)12345";
 	}
+
+	public static class PolicyNames
+	{
+		public const string AnyAdminPrivilege = "AnyAdminPrivilege";
+	}
 }

@@ -1,0 +1,42 @@
+@page "/products/{productId:int}/testcases/editform/{testCaseId:int}"
+@using Microsoft.EntityFrameworkCore
+@using Data
+@using Data.Models
+@using tcms.Pages.Testcases
+
+@inject NavigationManager uriHelper
+@inject IJSRuntime js
+@inject IDbContextFactory<ApplicationDbContext> dbFactory
+
+@attribute [Authorize(Policy = Constants.Permissions.TestCases.Edit)]
+
+<MudText Typo="Typo.h3">Edit</MudText>
+<Form ButtonText="Update" Data="testCase" OnValidSubmit="@EditProduct" ProductId="@productId" />
+
+@code {
+    [Parameter] public int productId { get; set; }
+    [Parameter] public int testCaseId { get; set; }
+    TestCase testCase = new();
+    ApplicationDbContext _context;
+
+    protected async override Task OnParametersSetAsync()
+    {
+        _context = dbFactory.CreateDbContext();
+        testCase = await _context.TestCases
+            .Include(p => p.Steps)
+            .FirstOrDefaultAsync(p => p.TestCaseId == testCaseId);
+    }
+
+    async Task EditProduct()
+    {
+        _context.Entry(testCase).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+        _snackBar.Add($"{testCase.Title} updated successfully", Severity.Success);
+        uriHelper.NavigateTo($"products/{productId}/testcases");
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
+    }
+}

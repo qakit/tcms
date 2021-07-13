@@ -1,0 +1,28 @@
+@inject IJSRuntime js
+
+<textarea id="myText"/>
+@code
+{
+	public async Task<string> GetValue()
+	{
+		var result = await mdeEditor.InvokeAsync<string>("value");
+		return result.ToString();
+	}
+
+    [Parameter]
+    public string InitialValue { get; set; }
+	
+	public IJSObjectReference mdeEditor { get; set; }
+
+	 protected override async Task OnAfterRenderAsync(bool firstRender)
+	 {
+		 if (firstRender)
+		 {
+			mdeEditor = await js.InvokeAsync<IJSObjectReference>($"wikiEditFunctions.render", "myText");
+			if(!string.IsNullOrEmpty(InitialValue))
+			{
+				await mdeEditor.InvokeVoidAsync("value", InitialValue);
+			}
+		 }
+	 }
+}

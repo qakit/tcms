@@ -20,6 +20,10 @@ namespace tcms.Data
 		}
 
 		public DbSet<Product> Products { get; set; }
+		public DbSet<TestCase> TestCases { get; set; }
+		public DbSet<TestCaseStatus> TestCaseStatuses { get; set; }
+		public DbSet<TestCaseType> TestCaseTypes { get; set; }
+		public DbSet<TestCasePriority> TestCasePriorities { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -92,10 +96,11 @@ namespace tcms.Data
 				new TestCaseStatus { TestCaseStatusId = 2, Name = "RequireChanges" });
 
 			modelBuilder.Entity<TestCaseType>().HasData(
-				new TestCaseType { TestCaseTypeId = 1, Name = "Functional" },
-				new TestCaseType { TestCaseTypeId = 2, Name = "Usability" },
-				new TestCaseType { TestCaseTypeId = 3, Name = "Performance" },
-				new TestCaseType { TestCaseTypeId = 4, Name = "Regression" });
+				new TestCaseType { TestCaseTypeId = 1, Name = "Other" },
+				new TestCaseType { TestCaseTypeId = 2, Name = "Functional" },
+				new TestCaseType { TestCaseTypeId = 3, Name = "Usability" },
+				new TestCaseType { TestCaseTypeId = 4, Name = "Performance" },
+				new TestCaseType { TestCaseTypeId = 5, Name = "Regression" });
 		}
 
 		public override int SaveChanges()

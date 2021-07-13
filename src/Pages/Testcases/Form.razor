@@ -1,0 +1,96 @@
+@using Microsoft.EntityFrameworkCore
+@using Data.Models
+
+@inject NavigationManager uriHelper
+@inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
+
+@inject IJSRuntime js
+
+<EditForm Model="@Data" OnValidSubmit="@OnValidSubmit">
+	<DataAnnotationsValidator />
+
+	<MudItem xs="12" md="6">
+		<MudTextField For="@(() => Data.Title)" @bind-Value="@Data.Title" Required="true" Label="Title" Placeholder="New test case title" />
+	</MudItem>
+	<MudItem xs="12" md="6">
+		<MudTextField For="@(() => Data.Description)" @bind-Value="@Data.Description" Required="true" Label="Description" Lines=3 />
+	</MudItem>
+	<MudItem xs="12" md="6">
+		<MudTextField For="@(() => Data.Text)" @bind-Value="@Data.Text" Required="true" Label="Text" Lines=10 />
+	</MudItem>
+	<MudGrid>
+		<MudItem md="3">
+			<MudPaper>
+				<MudItem xs="12">
+					<MudSelect T="int" @bind-Value="@Data.TypeId" Label="Type" Variant="Variant.Text">
+						@foreach (var t in caseTypes) { <MudSelectItem Value="@t.TestCaseTypeId">@t.Name</MudSelectItem> }
+					</MudSelect>
+				</MudItem>
+				<MudItem xs="12">
+					<MudSelect T="int" @bind-Value="@Data.PriorityId" Label="Priority" Variant="Variant.Text">
+						@foreach (var p in casePriorities) { <MudSelectItem Value="@p.TestCasePriorityId">@p.Name</MudSelectItem> }
+					</MudSelect>
+				</MudItem>
+				<MudItem xs="12">
+					<MudSelect T="int" @bind-Value="@Data.ComponentId" Label="Component" Variant="Variant.Text">
+						@foreach (var c in components) { <MudSelectItem Value="@c.ComponentId">@c.Name</MudSelectItem> }
+					</MudSelect>
+				</MudItem>
+			</MudPaper>
+		</MudItem>
+		<MudItem md="2">
+			<MudPaper>
+				<MudItem xs="12">
+					<MudCheckBox @bind-Checked="@Data.IsAutomated" Label="Automated"></MudCheckBox>
+				</MudItem>
+				<MudItem xs="12" md="4">
+					<MudNumericField @bind-Value="@Data.EstimateHr" Label="Estimate" Min="0" Max="99" Step="1"
+						Variant="Variant.Text" Adornment="Adornment.End" AdornmentText="Hr" />
+				</MudItem>
+			</MudPaper>
+		</MudItem>
+	</MudGrid>
+
+	@* <MudItem xs="12" md="6">
+		<MudSelect T="int" @bind-Value="@testCase.StatusId" Label="Status" Variant="Variant.Filled">
+			@foreach (var cnt in statuses)
+			{
+				<MudSelectItem Value="@cnt.TestCaseStatusId">@cnt.Name</MudSelectItem>
+			}
+		</MudSelect>
+	</MudItem> *@
+
+	<MudCard>
+		<MudCardActions>
+			<ValidationSummary />
+			<MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">@ButtonText</MudButton>
+			<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick=@Back>Back</MudButton>
+		</MudCardActions>
+	</MudCard>
+</EditForm>
+
+@code {
+	[Parameter] public int ProductId { get; set; }
+	[Parameter] public TestCase Data { get; set; }
+	[Parameter] public string ButtonText { get; set; } = "Save";
+	[Parameter] public EventCallback OnValidSubmit { get; set; }
+
+	List<Component> components = new ();
+	List<TestCaseStatus> statuses = new ();
+	List<TestCaseType> caseTypes = new ();
+	List<TestCasePriority> casePriorities = new ();
+
+	protected override async Task OnInitializedAsync()
+	{
+		using var db = dbFactory.CreateDbContext();
+		@* var product = await db.Products.FirstOrDefaultAsync(p => p.ProductId == ProductId); *@
+		components = (from p in db.Products where p.ProductId == ProductId from c in p.Components select c).ToList();
+		statuses = await db.TestCaseStatuses.ToListAsync();
+		caseTypes = await db.TestCaseTypes.ToListAsync();
+		casePriorities = await db.TestCasePriorities.ToListAsync();
+	}
+
+	async Task Back() {
+		await js.InvokeVoidAsync("history.back");
+	}
+}
