@@ -1,6 +1,9 @@
 ﻿@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
 @using Constants
+@using Data.Models
 
+@inject IDbContextFactory<Data.ApplicationDbContext> dbFactory
 @inject ClaimsPrincipal User
 
 <MudNavMenu>
@@ -12,7 +15,22 @@
     {
         <MudNavLink Href="manage/products" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Home">Products</MudNavLink>
     }
-    <MudNavLink Href="products" Icon="@Icons.Material.Outlined.LibraryBooks">Test cases</MudNavLink>
+    <MudNavGroup Title="Test cases" Icon="@Icons.Material.Outlined.LibraryBooks">
+        @if (products == null)
+        {
+            <text>Loading...</text>
+        }
+        else if (products.Count == 0)
+        {
+            <text>No products found. Please go to products to configure one.</text>
+        } else {
+            @foreach (var product in products)
+            {
+                <MudNavLink Href=@($"products/{product.ProductId}/testcases") Icon="@Icons.Filled.Receipt">@product.Name</MudNavLink>
+            }
+        }
+    </MudNavGroup>
+
     @if (_authorizationService.AuthorizeAsync(User, PolicyNames.AnyAdminPrivilege).Result.Succeeded)
     {
         <MudListSubheader Class="mt-2 mb-n2">
@@ -26,3 +44,14 @@
     }
 
 </MudNavMenu>
+
+@code {
+	IList<Product> products { get; set; }
+	string searchString { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		using var db = dbFactory.CreateDbContext();
+		products = await db.Products.ToListAsync();
+	}
+}

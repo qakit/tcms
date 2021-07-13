@@ -32,7 +32,7 @@
         _context.Entry(testCase).State = EntityState.Modified;
         await _context.SaveChangesAsync();
         _snackBar.Add($"{testCase.Title} updated successfully", Severity.Success);
-        uriHelper.NavigateTo("testcases");
+        uriHelper.NavigateTo($"products/{productId}/testcases");
     }
 
     public void Dispose()

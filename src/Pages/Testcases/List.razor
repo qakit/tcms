@@ -12,72 +12,78 @@
 
 @* @attribute [Authorize(Policy = Constants.Permissions.TestCases.Edit)] *@
 
-<MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-2">@localizer["Test cases"]</MudText>
+<MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-2">@localizer["Test cases"] @(product != null ? $" - {product.Name}" : "")</MudText>
 @if(product != null)
 {
-	<MudText Color="Color.Surface" Class="mb-4">@product.Name - @product.Description</MudText>
+	<MudText Color="Color.Surface" Class="mb-4">@product.Description</MudText>
 }
 
-@if (testcases == null || product == null)
+@if (listItems2 == null || product == null)
 {
 	<text>Loading...</text>
 }
-@* else if (testcases.Count == 0)
-{
-	<text>No Records Found.</text>
-	<br>
-	<text>It's about time to ...</text>
-	<MudButton OnClick="@(() => CreateNew())">Create New</MudButton>
-	<MudButton OnClick="@(() => CreateFromText())">Create New (text)</MudButton>
-} *@
 else
 {
-	<MudTable @ref=table Items="@testcases" Dense="true" Striped="true" Filter="new Func<TestCase, bool>(Search)">
-		<ToolBarContent>
-			<MudButton Variant="Variant.Filled" OnClick="@(() => CreateNew())">Create New</MudButton>
-			<MudButton Variant="Variant.Filled" OnClick="@(() => EditAll())">Edit</MudButton>
-			<MudToolBarSpacer />
-			<MudSelect T="int" @bind-Value="@filterComponentId" Label="Choose component" Variant="Variant.Text" Dense="true" SelectedValuesChanged=@RefreshList >
-				<MudSelectItem Value="0">All</MudSelectItem>
-				@foreach (var c in product.Components) { <MudSelectItem Value="@c.ComponentId">@c.Name</MudSelectItem> }
-			</MudSelect>
+	<MudToolBar>
+		<MudButton Variant="Variant.Filled" OnClick="@(() => CreateNew())">Create New</MudButton>
+		<MudButton Variant="Variant.Filled" OnClick="@(() => EditAll())">Edit</MudButton>
+		<MudToolBarSpacer />
+		@* <MudSelect T="int" @bind-Value="@filterComponentId" Label="Choose component" Variant="Variant.Text" Dense="true" SelectedValuesChanged=@RefreshList >
+			<MudSelectItem Value="0">All</MudSelectItem>
+			@foreach (var c in product.Components) { <MudSelectItem Value="@c.ComponentId">@c.Name</MudSelectItem> }
+		</MudSelect> *@
 
-			<MudTextField @bind-Value="@searchString" Placeholder="Search for test cases" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3"></MudTextField>
-		</ToolBarContent>
-		<HeaderContent>
-			<MudTh><MudTableSortLabel SortBy="new Func<TestCase, object>(x=>x.TestCaseId)" InitialDirection="SortDirection.Ascending">Id</MudTableSortLabel></MudTh>
-			<MudTh><MudTableSortLabel SortBy="new Func<TestCase, object>(x=>x.Title)">Title</MudTableSortLabel></MudTh>
-			<MudTh>Command</MudTh>
-		</HeaderContent>
-		<RowTemplate>
-			<MudTd DataLabel="Id">@context.TestCaseId</MudTd>
-			<MudTd DataLabel="Title">@context.Title</MudTd>
-			<MudTd>
-				<MudToolBar Dense="true">
-					<MudButton Color="Color.Inherit" OnClick="@(() => Edit(@context.TestCaseId))">Edit</MudButton>
-					<MudButton Color="Color.Inherit" OnClick="@(() => Delete(@context.TestCaseId))">Delete</MudButton>
-				</MudToolBar>
-			</MudTd>
-		</RowTemplate>
-		<PagerContent>
-			<MudTablePager PageSizeOptions="new int[]{50, 100}" />
-		</PagerContent>
-	</MudTable>
+		<MudTextField @bind-Value="@searchString" Placeholder="Search for test cases" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3"></MudTextField>
+	</MudToolBar>
+
+	<MudGrid>
+		<MudItem md="5">
+			<MudTreeView T="string" Dense="true">
+				@foreach (var c in listItems2) {
+					<MudTreeViewItem
+						Value="@c.Component.Name"
+						Icon="@Icons.Filled.LocalOffer"
+						EndText="@c.TestCases.Count().ToString()"
+						Expanded>
+						@foreach (var tc in c.TestCases) {
+							<MudTreeViewItem T="string">
+								<Content>
+									<MudTreeViewItemToggleButton Visible=false />
+									<MudIcon Icon="@Icons.Custom.FileFormats.FileDocument" Class="ml-0 mr-2" Color="@Color.Default" />
+									<MudText>@($"{tc.TestCaseId}. {tc.Title}")</MudText>
+									<MudMenu Icon="@Icons.Material.Filled.MoreHoriz" ActivationEvent="@MouseEvent.MouseOver" Dense>
+										<MudMenuItem @onclick="@(()=> Edit(@tc.TestCaseId))">Edit</MudMenuItem>
+										<MudMenuItem @onclick="@(()=> Delete(@tc.TestCaseId))">Delete</MudMenuItem>
+									</MudMenu>
+								</Content>
+								</MudTreeViewItem>
+						}
+					</MudTreeViewItem> }
+			</MudTreeView>
+		</MudItem>
+	</MudGrid>
 }
 
 @code {
+	public class ListItem2
+	{
+		public Component Component { get; init; }
+		public HashSet<TestCase> TestCases { get; init; }
+	}
+
 	[Parameter]
 	public int productId { get; set; }
 
 	Product product;
 
-	MudTable<TestCase> table;
-	IList<TestCase> testcases { get; set; }
+	HashSet<ListItem2> listItems2 { get; set; }
 	string searchString { get; set; }
 	int filterComponentId { get; set; }
 
-	protected override async Task OnInitializedAsync()
+	protected async override Task OnParametersSetAsync()
 	{
+		await base.OnParametersSetAsync();
+
 		using var db = dbFactory.CreateDbContext();
 		product = await db.Products.Include(p => p.Components).FirstAsync(p => p.ProductId == productId);
 		await RefreshList(db);
@@ -91,26 +97,22 @@ else
 
 	private async Task RefreshList(Data.ApplicationDbContext db)
 	{
-		testcases = await (from p in db.Products where p.ProductId == productId
+		listItems2 = (from p in db.Products where p.ProductId == productId
 			from c in p.Components
 			where filterComponentId == 0 || c.ComponentId == filterComponentId
-			from t in c.TestCases
-			select t
-		).ToListAsync();
-	}
-
-	private bool Search(TestCase product)
-	{
-		if (string.IsNullOrWhiteSpace(searchString)) return true;
-		return product.Title.Contains(searchString, StringComparison.OrdinalIgnoreCase)
-			@* || product.Text.Contains(searchString, StringComparison.OrdinalIgnoreCase) *@
-		;
+			orderby c.Name, c.ComponentId
+			select new ListItem2() { Component = c, TestCases = c.TestCases.ToHashSet() }
+		).ToHashSet();
 	}
 
 	async Task Delete(int testCaseId)
 	{
 		using var db = dbFactory.CreateDbContext();
-		var testcase = testcases.First(x => x.TestCaseId == testCaseId);
+		
+		var testcase = (from l in listItems2
+			from tc in l.TestCases
+			where tc.TestCaseId == testCaseId
+			select tc).FirstOrDefault();
 		if (!await js.InvokeAsync<bool>("confirm", $"Do you want to delete {testcase.Title}'s Record?")) return;
 		
 		try {
@@ -126,15 +128,17 @@ else
 
 	void EditAll()
 	{
-		var itemIds = table.FilteredItems.Select(tc => tc.TestCaseId.ToString()).ToArray();
+		var itemIds = (from l in listItems2
+			from tc in l.TestCases
+			select tc.TestCaseId.ToString()).ToArray();
 		var itemIdsStr = string.Join(',', itemIds);
 		// TODO productId must be specified upfront
 		navManager.NavigateTo($"/products/{productId}/testcases/edit?Items={itemIdsStr}");
 	}
 
-	void Edit(int productId)
+	void Edit(int testCaseId)
 	{
-		navManager.NavigateTo($"products/{productId}/testcases/editform/{productId}");
+		navManager.NavigateTo($"products/{productId}/testcases/editform/{testCaseId}");
 	}
 
 	void CreateNew()
